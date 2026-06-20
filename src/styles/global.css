@@ -3,7 +3,7 @@
    ========================================== */
 
 :root {
-	/* === 明亮模式（极透苹果乳白 - 2.0 满血透光版） === */
+	/* === 明亮模式（极透苹果乳白） === */
 	--bg-filter: brightness(1.05) blur(30px) saturate(190%);
 	--card-bg: rgba(255, 255, 255, 0.15); 
 	--card-border: rgba(255, 255, 255, 0.25);
@@ -38,7 +38,40 @@ html.dark {
 }
 
 /* ==========================================
-   iOS 控制中心同款极光壁纸引擎（精密防溢出版）
+   🌊 史诗级级联控光核心（全站明暗“瀑布顺滑过渡”引擎）
+   ========================================== */
+/* 核心逻辑：给全站不同垂直高度的组件赋予不同的色彩响应延迟，产生由上至下的流淌感 */
+html, body, header, main, main ul li, footer, a, svg, button {
+	/* 锁死全站色彩变化的物理阻尼，0.4s 丝滑变色 */
+	transition: background 0.4s cubic-bezier(0.25, 1, 0.5, 1),
+	            color 0.4s cubic-bezier(0.25, 1, 0.5, 1),
+	            border-color 0.4s cubic-bezier(0.25, 1, 0.5, 1),
+	            filter 0.5s cubic-bezier(0.25, 1, 0.5, 1),
+	            box-shadow 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* 🎯 瀑布流第一层：最上方的头栏最先响应，0延迟 */
+header {
+	transition-delay: 0s !important;
+}
+
+/* 🎯 瀑布流第二层：中间的正文大标题和文本稍慢，延迟 0.08 秒 */
+main h1, main p {
+	transition-delay: 0.08s !important;
+}
+
+/* 🎯 瀑布流第三层：正文下方的胶囊药丸条接着变色，延迟 0.16 秒 */
+main ul li {
+	transition-delay: 0.16s !important;
+}
+
+/* 🎯 瀑布流第四层：最底部的页脚最后入夜/亮起，延迟 0.24 秒 */
+footer {
+	transition-delay: 0.24s !important;
+}
+
+/* ==========================================
+   iOS 控制中心同款极光壁纸
    ========================================== */
 body {
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -63,24 +96,20 @@ body::before {
 	background-position: center;
 	filter: var(--bg-filter);
 	z-index: -1;
-	transition: filter 0.3s ease;
 }
 
 /* ==========================================
-   🎯 头栏极致对齐与垂直居中专项补丁
+   🎯 头栏极致对齐与按钮高级淡入淡出优化
    ========================================== */
 header {
 	background: rgba(255, 255, 255, 0.12) !important;
 	backdrop-filter: blur(25px) saturate(200%) !important;
 	-webkit-backdrop-filter: blur(25px) saturate(200%) !important;
 	border-bottom: 1px solid var(--card-border) !important;
-	
-	/* 🔴 核心对刀：给外框留出 0.8rem 均匀内边距，强制不顶天立地 */
 	padding: 0.8rem 2rem !important; 
 	position: sticky;
 	top: 0;
 	z-index: 100;
-	transition: background 0.3s ease;
 }
 
 html.dark header {
@@ -89,19 +118,18 @@ html.dark header {
 
 header nav {
 	display: flex;
-	align-items: center; /* 🔴 绝杀：强制内部所有文字图标绝对水平垂直居中 */
+	align-items: center; 
 	justify-content: space-between;
 	max-width: 960px;
 	margin: 0 auto;
-	height: auto !important; /* 解锁高度限制 */
+	height: auto !important; 
 }
 
-/* 修复大标题 mcxiaoshan Blog 自身的默认外边距挤压问题 */
 header h2 {
 	margin: 0 !important;
 	padding: 0 !important;
 	font-size: 1.4rem !important;
-	line-height: 1 !important; /* 强制单行，决不顶边 */
+	line-height: 1 !important; 
 	display: flex;
 	align-items: center;
 }
@@ -110,9 +138,16 @@ header a, header h2 a {
 	color: var(--text-main) !important;
 	text-decoration: none !important;
 	font-weight: 600;
+	opacity: 0.85;
+	/* 🔴 修复生硬：单独给链接悬浮挂载 0.2 秒的丝滑阻尼 */
+	transition: opacity 0.2s ease, color 0.2s ease !important; 
 }
 
-header a:hover { color: var(--accent) !important; }
+/* 🔴 鼠标移上去：高档优雅地微微亮起苹果蓝并加深不透明度，绝不生硬 */
+header a:hover { 
+	color: var(--accent) !important; 
+	opacity: 1 !important;
+}
 
 header .internal-links, header .social-links {
 	display: flex;
@@ -126,7 +161,7 @@ header .internal-links, header .social-links {
 }
 
 /* ==========================================
-   🎯 正文与长条胶囊（含移动端自适应）
+   🎯 正文与长条胶囊
    ========================================== */
 main {
 	width: 100%;
@@ -141,7 +176,6 @@ main ul {
 	margin: 2rem 0 !important;
 }
 
-/* 首页横条：两端完美全圆胶囊 💊 */
 main ul li {
 	list-style: none !important;
 	background: var(--card-bg) !important;
@@ -149,12 +183,13 @@ main ul li {
 	-webkit-backdrop-filter: blur(15px) !important;
 	border: 1px solid var(--card-border) !important;
 	box-shadow: var(--card-shadow) !important;
-	
 	border-radius: 9999px !important; 
 	padding: 0.8rem 2.2rem !important; 
 	margin-bottom: 1.2rem !important;
-	transition: transform 0.2s ease, background 0.2s ease;
 	word-break: break-all; 
+	
+	/* 确保悬浮放大也走单独的阻尼，不跟瀑布流延迟冲突 */
+	transition: transform 0.2s ease, background 0.2s ease !important;
 }
 
 main ul li:hover {
@@ -166,7 +201,6 @@ html.dark main ul li:hover {
 	background: rgba(255, 255, 255, 0.12) !important;
 }
 
-/* 博客列表与文章大卡片：保持高贵方圆角 */
 main section ul li, article, .prose {
 	border-radius: 24px !important; 
 }
@@ -188,9 +222,12 @@ code {
 	align-items: center;
 	justify-content: center;
 	color: inherit;
-	transition: all 0.2s ease;
 	width: 34px;
 	height: 34px;
+	transition: transform 0.2s ease, background 0.2s ease !important;
+}
+#theme-toggle:hover {
+	transform: scale(1.05);
 }
 .sun { display: none; width: 16px; height: 16px; }
 .moon { display: block; width: 16px; height: 16px; }
@@ -204,7 +241,7 @@ footer {
 }
 
 /* ==========================================
-   🍏 专属图片比例物理纠偏（彻底解决雷霆拉伸）
+   🍏 专属图片比例物理纠偏
    ========================================== */
 .hero-image img, .article-hero-img, main img {
 	width: auto !important;             
@@ -218,49 +255,17 @@ footer {
 }
 
 /* ==========================================
-   🚨 移动端/手机端像素级防乱死锁
+   🚨 移动端/手机端像素级防乱
    ========================================== */
 @media (max-width: 720px) {
-	header {
-		padding: 0.8rem 1rem !important; 
-	}
-	header nav {
-		flex-direction: column; 
-		gap: 0.5rem;
-		text-align: center;
-	}
-	header h2 {
-		font-size: 1.2rem !important;
-		margin: 0 !important;
-	}
-	.internal-links {
-		gap: 1rem !important;
-	}
-	.right-menu {
-		gap: 1rem !important;
-	}
-	
-	main {
-		padding: 1.5rem 1rem !important; 
-	}
-	main h1 {
-		font-size: 1.6rem !important; 
-	}
-	
-	main ul li {
-		border-radius: 20px !important; 
-		padding: 1rem 1.2rem !important; 
-		font-size: 0.9rem !important;
-		line-height: 1.4 !important;
-	}
-	
-	main section ul {
-		display: flex;
-		flex-direction: column;
-		gap: 1.5rem !important;
-	}
-	main section ul li {
-		width: 100% !important;
-		transform: none !important;
-	}
+	header { padding: 0.8rem 1rem !important; }
+	header nav { flex-direction: column; gap: 0.5rem; text-align: center; }
+	header h2 { font-size: 1.2rem !important; margin: 0 !important; }
+	.internal-links { gap: 1rem !important; }
+	.right-menu { gap: 1rem !important; }
+	main { padding: 1.5rem 1rem !important; }
+	main h1 { font-size: 1.6rem !important; }
+	main ul li { border-radius: 20px !important; padding: 1rem 1.2rem !important; font-size: 0.9rem !important; line-height: 1.4 !important; }
+	main section ul { display: flex; flex-direction: column; gap: 1.5rem !important; }
+	main section ul li { width: 100% !important; transform: none !important; }
 }
