@@ -38,7 +38,7 @@ html.dark {
 }
 
 /* ==========================================
-   iOS 控制中心同款极光壁纸引擎（精密不溢出版）
+   iOS 控制中心同款极光壁纸引擎
    ========================================== */
 body {
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -48,8 +48,6 @@ body {
 	color: var(--text-main);
 	background-color: #000;
 	position: relative;
-	
-	/* 🎯 绝杀大招：从系统底层物理禁止任何横向溢出和左右晃荡 */
 	overflow-x: hidden !important; 
 }
 
@@ -58,11 +56,8 @@ body::before {
 	position: fixed;
 	top: 0;
 	left: 0;
-	
-	/* 🎯 修正：用 100% 替代 100vw，完美扣除滚动条占位，彻底干掉水平滚动条 */
 	width: 100% !important;
 	height: 100% !important;
-	
 	background-image: url('https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?q=80&w=1920&auto=format&fit=crop');
 	background-size: cover;
 	background-position: center;
@@ -72,7 +67,7 @@ body::before {
 }
 
 /* ==========================================
-   🎯 头栏无损物理复活
+   🎯 头栏无损物理防乱优化
    ========================================== */
 header {
 	background: var(--card-bg) !important;
@@ -98,21 +93,23 @@ header a, header h2, header h2 a {
 	color: var(--text-main) !important;
 	text-decoration: none !important;
 	font-weight: 600;
-	transition: opacity 0.2s ease;
 }
 
-header a:hover {
-	color: var(--accent) !important; 
-}
+header a:hover { color: var(--accent) !important; }
 
 header .internal-links, header .social-links {
 	display: flex;
 	gap: 1.5rem;
 	align-items: center;
 }
+.right-menu {
+	display: flex;
+	align-items: center;
+	gap: 1.5rem;
+}
 
 /* ==========================================
-   🎯 正文长条胶囊与大卡片
+   🎯 正文与长条胶囊（含移动端死锁自适应）
    ========================================== */
 main {
 	width: 100%;
@@ -122,7 +119,12 @@ main {
 	box-sizing: border-box;
 }
 
-/* 首页横条：完美两端全圆胶囊 💊 */
+/* 电脑端默认横条：完美两端全圆胶囊 💊 */
+main ul {
+	padding: 0 !important; /* 物理清除默认缩进 */
+	margin: 2rem 0 !important;
+}
+
 main ul li {
 	list-style: none !important;
 	background: var(--card-bg) !important;
@@ -135,6 +137,7 @@ main ul li {
 	padding: 0.8rem 2.2rem !important; 
 	margin-bottom: 1.2rem !important;
 	transition: transform 0.2s ease, background 0.2s ease;
+	word-break: break-all; /* 防止英文路径把卡片撑爆 */
 }
 
 main ul li:hover {
@@ -142,16 +145,11 @@ main ul li:hover {
 	background: rgba(255, 255, 255, 0.55) !important;
 }
 
-html.dark main ul li:hover {
-	background: rgba(255, 255, 255, 0.15) !important;
-}
-
-/* 博客列表的大卡片：保持 24px 苹果高端圆角 */
+/* 博客列表与文章大卡片：保持苹果高端圆角 */
 main section ul li, article, .prose {
 	border-radius: 24px !important; 
 }
 
-/* 修复文章内联代码块 */
 code {
 	background: rgba(255, 255, 255, 0.15);
 	padding: 0.2rem 0.6rem;
@@ -159,10 +157,79 @@ code {
 	font-size: 0.9em;
 }
 
+#theme-toggle {
+	background: rgba(255, 255, 255, 0.2);
+	border: 1px solid rgba(255, 255, 255, 0.3);
+	padding: 0.5rem;
+	border-radius: 9999px;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: inherit;
+	transition: all 0.2s ease;
+	width: 36px;
+	height: 36px;
+}
+.sun { display: none; width: 18px; height: 18px; }
+.moon { display: block; width: 18px; height: 18px; }
+:global(html.dark) .sun { display: block; }
+:global(html.dark) .moon { display: none; }
+
 footer {
 	color: var(--text-muted);
 	border-top: 1px solid var(--card-border);
 	text-align: center;
 	padding: 3rem 1.5rem;
 	margin-top: 5rem;
+}
+
+/* ==========================================
+   🚨 核心死锁：手机端移动端（像素级防乱防挤压）
+   ========================================== */
+@media (max-width: 720px) {
+	header {
+		padding: 0.8rem 1rem !important; /* 缩小手机端头栏外边距 */
+	}
+	header nav {
+		flex-direction: column; /* 手机端头栏纵向排开，防止挤爆 */
+		gap: 0.8rem;
+		text-align: center;
+	}
+	header h2 {
+		font-size: 1.3rem !important;
+		margin: 0 !important;
+	}
+	.internal-links {
+		gap: 1rem !important;
+	}
+	.right-menu {
+		gap: 1rem !important;
+	}
+	
+	main {
+		padding: 1.5rem 1rem !important; /* 手机端两边留出安全距离 */
+	}
+	main h1 {
+		font-size: 1.6rem !important; /* 缩小手机标题，防止换行太丑 */
+	}
+	
+	/* 🚀 重点：柔化手机端胶囊条，将 padding 缩减，保证文字绝不溢出和重叠 */
+	main ul li {
+		border-radius: 20px !important; /* 手机窄屏上如果字太多，回退到好看的大圆角，防止变成诡异长条 */
+		padding: 1rem 1.2rem !important; 
+		font-size: 0.9rem !important;
+		line-height: 1.4 !important;
+	}
+	
+	/* 手机端博客列表图文对齐优化 */
+	main section ul {
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem !important;
+	}
+	main section ul li {
+		width: 100% !important;
+		transform: none !important;
+	}
 }
