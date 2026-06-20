@@ -13,10 +13,9 @@
 	--card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.04);
 }
 
-/* 🌓 自动适配 Windows 11 / 手机端系统暗黑模式 */
+/* 🌓 1. 自动适配系统暗黑模式 */
 @media (prefers-color-scheme: dark) {
 	:root {
-		/* === 深色模式（太空灰透光控制台） === */
 		--bg-filter: brightness(0.6) blur(30px) saturate(160%);
 		--card-bg: rgba(30, 30, 35, 0.55); 
 		--card-border: rgba(255, 255, 255, 0.08);
@@ -25,6 +24,17 @@
 		--accent: #2997ff;
 		--card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
 	}
+}
+
+/* 🎯 2. 强行物理锁死：响应手动按钮增加的 .dark 类名 */
+html.dark {
+	--bg-filter: brightness(0.6) blur(30px) saturate(160%);
+	--card-bg: rgba(30, 30, 35, 0.55) !important; 
+	--card-border: rgba(255, 255, 255, 0.08) !important;
+	--text-main: #f5f5f7 !important;
+	--text-muted: #86868b !important;
+	--accent: #2997ff !important;
+	--card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3) !important;
 }
 
 /* ==========================================
@@ -52,23 +62,24 @@ body::before {
 	background-position: center;
 	filter: var(--bg-filter); /* iOS 系统级高斯模糊 */
 	z-index: -1;
+	transition: filter 0.3s ease;
 }
 
 /* ==========================================
-   🎯 头栏（Header）绝对无损物理复活
+   🎯 头栏无损物理复活
    ========================================== */
 header {
 	background: var(--card-bg) !important;
 	backdrop-filter: blur(20px) saturate(180%) !important;
 	-webkit-backdrop-filter: blur(20px) saturate(180%) !important;
 	border-bottom: 1px solid var(--card-border) !important;
-	padding: 1rem 2rem !important; /* 物理留出高档内边距 */
+	padding: 1rem 2rem !important; 
 	position: sticky;
 	top: 0;
 	z-index: 100;
+	transition: background 0.3s ease;
 }
 
-/* 强制让头栏内部的导航、链接和文字全部正常显现，绝不隐身 */
 header nav {
 	display: flex;
 	align-items: center;
@@ -85,10 +96,9 @@ header a, header h2, header h2 a {
 }
 
 header a:hover {
-	color: var(--accent) !important; /* 悬浮时亮起苹果蓝 */
+	color: var(--accent) !important; 
 }
 
-/* 让头栏里的多国语言或者社交链接区域完美排开 */
 header .internal-links, header .social-links {
 	display: flex;
 	gap: 1.5rem;
@@ -96,7 +106,7 @@ header .internal-links, header .social-links {
 }
 
 /* ==========================================
-   🎯 首页长条胶囊与博客卡片
+   🎯 正文长条胶囊与大卡片
    ========================================== */
 main {
 	width: 100%;
@@ -106,7 +116,7 @@ main {
 	box-sizing: border-box;
 }
 
-/* 首页那五个横条：100% 饱满全圆胶囊 */
+/* 首页横条：完美两端全圆胶囊 💊 */
 main ul li {
 	list-style: none !important;
 	background: var(--card-bg) !important;
@@ -115,15 +125,19 @@ main ul li {
 	border: 1px solid var(--card-border) !important;
 	box-shadow: var(--card-shadow) !important;
 	
-	border-radius: 9999px !important; /* 纯正全圆胶囊 💊 */
+	border-radius: 9999px !important; 
 	padding: 0.8rem 2.2rem !important; 
 	margin-bottom: 1.2rem !important;
-	transition: transform 0.2s ease;
+	transition: transform 0.2s ease, background 0.2s ease;
 }
 
 main ul li:hover {
 	transform: scale(1.015);
 	background: rgba(255, 255, 255, 0.55) !important;
+}
+
+html.dark main ul li:hover {
+	background: rgba(255, 255, 255, 0.15) !important;
 }
 
 /* 博客列表的大卡片：保持 24px 苹果高端圆角 */
