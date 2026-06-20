@@ -13,7 +13,7 @@
 	--card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.02);
 }
 
-/* 🌓 1. 自动适配系统暗黑模式 */
+/* 🌓 1. 自动适配系统暗黑模式（基础兜底） */
 @media (prefers-color-scheme: dark) {
 	:root {
 		--bg-filter: brightness(0.6) blur(30px) saturate(160%);
@@ -26,48 +26,82 @@
 	}
 }
 
-/* 🎯 2. 强行物理锁死：响应手动按钮增加的 .dark 类名 */
-html.dark {
-	--bg-filter: brightness(0.6) blur(30px) saturate(160%);
-	--card-bg: rgba(20, 20, 25, 0.2) !important; 
-	--card-border: rgba(255, 255, 255, 0.06) !important;
-	--text-main: #f5f5f7 !important;
-	--text-muted: #86868b !important;
-	--accent: #2997ff !important;
-	--card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2) !important;
-}
-
 /* ==========================================
-   🌊 史诗级级联控光核心（全站明暗“瀑布顺滑过渡”引擎）
+   🌊 史诗级级联控光核心（解绑 !important，物理降噪）
    ========================================== */
-/* 核心逻辑：给全站不同垂直高度的组件赋予不同的色彩响应延迟，产生由上至下的流淌感 */
-html, body, header, main, main ul li, footer, a, svg, button {
-	/* 锁死全站色彩变化的物理阻尼，0.4s 丝滑变色 */
-	transition: background 0.4s cubic-bezier(0.25, 1, 0.5, 1),
-	            color 0.4s cubic-bezier(0.25, 1, 0.5, 1),
-	            border-color 0.4s cubic-bezier(0.25, 1, 0.5, 1),
-	            filter 0.5s cubic-bezier(0.25, 1, 0.5, 1),
-	            box-shadow 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+/* 锁死全站所有元素的色彩过渡阻尼，0.5秒优雅漫延 */
+html, body, header, main, main *, footer, a, svg, button {
+	transition: background 0.5s cubic-bezier(0.25, 1, 0.5, 1),
+	            color 0.5s cubic-bezier(0.25, 1, 0.5, 1),
+	            border-color 0.5s cubic-bezier(0.25, 1, 0.5, 1),
+	            filter 0.6s cubic-bezier(0.25, 1, 0.5, 1),
+	            box-shadow 0.5s cubic-bezier(0.25, 1, 0.5, 1) !important;
 }
 
-/* 🎯 瀑布流第一层：最上方的头栏最先响应，0延迟 */
-header {
+/* 🎯 瀑布流第一层：最上方的整个头栏最先响应，0延迟爆发 */
+header, header * {
 	transition-delay: 0s !important;
 }
 
-/* 🎯 瀑布流第二层：中间的正文大标题和文本稍慢，延迟 0.08 秒 */
-main h1, main p {
+/* 🎯 瀑布流第二层：中间正文的文字和大标题，稍慢 0.08 秒 */
+main h1, main p, main a, main span {
 	transition-delay: 0.08s !important;
 }
 
-/* 🎯 瀑布流第三层：正文下方的胶囊药丸条接着变色，延迟 0.16 秒 */
+/* 🎯 瀑布流第三层：正文下方的胶囊药丸条，在中期变色，延迟 0.16 秒 */
 main ul li {
 	transition-delay: 0.16s !important;
 }
 
-/* 🎯 瀑布流第四层：最底部的页脚最后入夜/亮起，延迟 0.24 秒 */
-footer {
+/* 🎯 瀑布流第四层：最底部的页脚大后方最后入夜，延迟 0.24 秒 */
+footer, footer * {
 	transition-delay: 0.24s !important;
+}
+
+/* ==========================================
+   🌓 2. 手动控光精准选择器（干掉全局覆盖，实现差速流淌）
+   ========================================== */
+html.dark body::before {
+	filter: brightness(0.6) blur(30px) saturate(160%);
+}
+
+/* 头栏手动入夜 */
+html.dark header {
+	background: rgba(15, 15, 20, 0.15) !important;
+	border-color: rgba(255, 255, 255, 0.06) !important;
+}
+html.dark header a, html.dark header h2 a {
+	color: #f5f5f7 !important;
+}
+
+/* 正文文案手动入夜 */
+html.dark main h1, html.dark main p {
+	color: #f5f5f7 !important;
+}
+html.dark main p {
+	color: #86868b !important;
+}
+
+/* 首页那5个全圆药丸长条手动入夜 */
+html.dark main ul li {
+	background: rgba(20, 20, 25, 0.2) !important; 
+	border-color: rgba(255, 255, 255, 0.06) !important;
+	box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2) !important;
+}
+html.dark main ul li b {
+	color: #f5f5f7 !important;
+}
+html.dark main ul li span {
+	color: #86868b !important;
+}
+
+/* 底栏手动入夜 */
+html.dark footer {
+	color: #86868b !important;
+	border-color: rgba(255, 255, 255, 0.06) !important;
+}
+html.dark footer a {
+	color: #86868b !important;
 }
 
 /* ==========================================
@@ -99,21 +133,17 @@ body::before {
 }
 
 /* ==========================================
-   🎯 头栏极致对齐与按钮高级淡入淡出优化
+   🎯 头栏极致对齐与链接高级淡入淡出
    ========================================== */
 header {
-	background: rgba(255, 255, 255, 0.12) !important;
+	background: rgba(255, 255, 255, 0.12);
 	backdrop-filter: blur(25px) saturate(200%) !important;
 	-webkit-backdrop-filter: blur(25px) saturate(200%) !important;
-	border-bottom: 1px solid var(--card-border) !important;
+	border-bottom: 1px solid var(--card-border);
 	padding: 0.8rem 2rem !important; 
 	position: sticky;
 	top: 0;
 	z-index: 100;
-}
-
-html.dark header {
-	background: rgba(15, 15, 20, 0.15) !important;
 }
 
 header nav {
@@ -135,16 +165,14 @@ header h2 {
 }
 
 header a, header h2 a {
-	color: var(--text-main) !important;
+	color: var(--text-main);
 	text-decoration: none !important;
 	font-weight: 600;
 	opacity: 0.85;
-	/* 🔴 修复生硬：单独给链接悬浮挂载 0.2 秒的丝滑阻尼 */
-	transition: opacity 0.2s ease, color 0.2s ease !important; 
 }
 
-/* 🔴 鼠标移上去：高档优雅地微微亮起苹果蓝并加深不透明度，绝不生硬 */
-header a:hover { 
+/* 鼠标悬浮链接：0.2秒高级果味淡入淡出 */
+header a:hover, html.dark header a:hover { 
 	color: var(--accent) !important; 
 	opacity: 1 !important;
 }
@@ -178,25 +206,22 @@ main ul {
 
 main ul li {
 	list-style: none !important;
-	background: var(--card-bg) !important;
+	background: var(--card-bg);
 	backdrop-filter: blur(15px) !important;
 	-webkit-backdrop-filter: blur(15px) !important;
-	border: 1px solid var(--card-border) !important;
-	box-shadow: var(--card-shadow) !important;
+	border: 1px solid var(--card-border);
+	box-shadow: var(--card-shadow);
 	border-radius: 9999px !important; 
 	padding: 0.8rem 2.2rem !important; 
 	margin-bottom: 1.2rem !important;
 	word-break: break-all; 
-	
-	/* 确保悬浮放大也走单独的阻尼，不跟瀑布流延迟冲突 */
-	transition: transform 0.2s ease, background 0.2s ease !important;
 }
 
+/* 独立挂载鼠标悬浮卡片的放大与高亮，不和瀑布流冲突 */
 main ul li:hover {
-	transform: scale(1.015);
+	transform: scale(1.015) !important;
 	background: rgba(255, 255, 255, 0.35) !important;
 }
-
 html.dark main ul li:hover {
 	background: rgba(255, 255, 255, 0.12) !important;
 }
@@ -224,10 +249,9 @@ code {
 	color: inherit;
 	width: 34px;
 	height: 34px;
-	transition: transform 0.2s ease, background 0.2s ease !important;
 }
 #theme-toggle:hover {
-	transform: scale(1.05);
+	transform: scale(1.05) !important;
 }
 .sun { display: none; width: 16px; height: 16px; }
 .moon { display: block; width: 16px; height: 16px; }
