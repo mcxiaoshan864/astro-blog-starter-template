@@ -2,7 +2,7 @@
 title: "怀旧考古：那年夏天，S6 Edge+ 与第三方 ROM 的生死漂移"
 description: "记录很久以前，在一台双曲面机皇上用 Odin 工具与 Knox 熔断机制极限对线的老炮回忆。"
 pubDate: "2026-06-20"
-heroImage: "https://images.unsplash.com/photo-1605236453806-6ff36851218e?q=80&w=1020&auto=format&fit=crop"
+heroImage: "https://images.unsplash.com/photo-1618401471353-b98afee0b2eb?q=80&w=1000&auto=format&fit=crop"
 ---
 
 # 🧑‍💻 赛博考古：属于三星双曲面屏的折腾时代
