@@ -38,7 +38,7 @@ html.dark {
 }
 
 /* ==========================================
-   iOS 控制中心同款极光壁纸引擎
+   iOS 控制中心同款极光壁纸引擎（精密防溢出版）
    ========================================== */
 body {
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -48,7 +48,7 @@ body {
 	color: var(--text-main);
 	background-color: #000;
 	position: relative;
-	overflow-x: hidden !important; 
+	overflow-x: hidden !important; /* 彻底禁止横向溢出 */
 }
 
 body::before {
@@ -56,7 +56,7 @@ body::before {
 	position: fixed;
 	top: 0;
 	left: 0;
-	width: 100% !important;
+	width: 100% !important;  /* 完美对齐滚动条，杜绝横向位移 */
 	height: 100% !important;
 	background-image: url('https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?q=80&w=1920&auto=format&fit=crop');
 	background-size: cover;
@@ -109,7 +109,7 @@ header .internal-links, header .social-links {
 }
 
 /* ==========================================
-   🎯 正文与长条胶囊（含移动端死锁自适应）
+   🎯 正文与长条胶囊（含移动端自适应）
    ========================================== */
 main {
 	width: 100%;
@@ -119,12 +119,12 @@ main {
 	box-sizing: border-box;
 }
 
-/* 电脑端默认横条：完美两端全圆胶囊 💊 */
 main ul {
-	padding: 0 !important; /* 物理清除默认缩进 */
+	padding: 0 !important; 
 	margin: 2rem 0 !important;
 }
 
+/* 首页横条：两端完美全圆胶囊 💊 */
 main ul li {
 	list-style: none !important;
 	background: var(--card-bg) !important;
@@ -137,7 +137,7 @@ main ul li {
 	padding: 0.8rem 2.2rem !important; 
 	margin-bottom: 1.2rem !important;
 	transition: transform 0.2s ease, background 0.2s ease;
-	word-break: break-all; /* 防止英文路径把卡片撑爆 */
+	word-break: break-all; 
 }
 
 main ul li:hover {
@@ -145,7 +145,7 @@ main ul li:hover {
 	background: rgba(255, 255, 255, 0.55) !important;
 }
 
-/* 博客列表与文章大卡片：保持苹果高端圆角 */
+/* 博客列表与文章大卡片：保持高贵方圆角 */
 main section ul li, article, .prose {
 	border-radius: 24px !important; 
 }
@@ -173,8 +173,6 @@ code {
 }
 .sun { display: none; width: 18px; height: 18px; }
 .moon { display: block; width: 18px; height: 18px; }
-:global(html.dark) .sun { display: block; }
-:global(html.dark) .moon { display: none; }
 
 footer {
 	color: var(--text-muted);
@@ -185,14 +183,28 @@ footer {
 }
 
 /* ==========================================
-   🚨 核心死锁：手机端移动端（像素级防乱防挤压）
+   🍏 专属图片比例物理纠偏（彻底解决雷霆拉伸）
+   ========================================== */
+.hero-image img, .article-hero-img, main img {
+	width: auto !important;             /* 物理解绑宽高比 */
+	max-width: 100% !important;         /* 宽度严禁超出容器 */
+	height: auto !important;            /* 高度等比例收缩 */
+	max-height: 400px !important;       /* 卡死最高阀值 */
+	object-fit: contain !important;     /* 核心绝杀：无论如何锁死原本健康比例 */
+	margin: 0 auto !important;          /* 居中对齐 */
+	border-radius: 24px !important;     /* 苹果圆角 */
+	display: block !important;
+}
+
+/* ==========================================
+   🚨 移动端/手机端像素级防乱死锁
    ========================================== */
 @media (max-width: 720px) {
 	header {
-		padding: 0.8rem 1rem !important; /* 缩小手机端头栏外边距 */
+		padding: 0.8rem 1rem !important; 
 	}
 	header nav {
-		flex-direction: column; /* 手机端头栏纵向排开，防止挤爆 */
+		flex-direction: column; 
 		gap: 0.8rem;
 		text-align: center;
 	}
@@ -208,21 +220,20 @@ footer {
 	}
 	
 	main {
-		padding: 1.5rem 1rem !important; /* 手机端两边留出安全距离 */
+		padding: 1.5rem 1rem !important; 
 	}
 	main h1 {
-		font-size: 1.6rem !important; /* 缩小手机标题，防止换行太丑 */
+		font-size: 1.6rem !important; 
 	}
 	
-	/* 🚀 重点：柔化手机端胶囊条，将 padding 缩减，保证文字绝不溢出和重叠 */
+	/* 手机窄屏防挤压：回退到安全的大圆角，padding收紧 */
 	main ul li {
-		border-radius: 20px !important; /* 手机窄屏上如果字太多，回退到好看的大圆角，防止变成诡异长条 */
+		border-radius: 20px !important; 
 		padding: 1rem 1.2rem !important; 
 		font-size: 0.9rem !important;
 		line-height: 1.4 !important;
 	}
 	
-	/* 手机端博客列表图文对齐优化 */
 	main section ul {
 		display: flex;
 		flex-direction: column;
