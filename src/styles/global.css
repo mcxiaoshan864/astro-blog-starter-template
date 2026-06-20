@@ -1,155 +1,148 @@
-/*
-  The CSS in this style tag is based off of Bear Blog's default CSS.
-  https://github.com/HermanMartinus/bearblog/blob/297026a877bc2ab2b3bdfbd6b9f7961c350917dd/templates/styles/blog/default.css
-  License MIT: https://github.com/HermanMartinus/bearblog/blob/master/LICENSE.md
- */
+/* ==========================================
+   🍏 纯正苹果美学 - 无损液态玻璃与全圆药丸系统
+   ========================================== */
 
 :root {
-	--accent: #2337ff;
-	--accent-dark: #000d8a;
-	--black: 15, 18, 25;
-	--gray: 96, 115, 159;
-	--gray-light: 229, 233, 240;
-	--gray-dark: 34, 41, 57;
-	--gray-gradient: rgba(var(--gray-light), 50%), #fff;
-	--box-shadow:
-		0 2px 6px rgba(var(--gray), 25%), 0 8px 24px rgba(var(--gray), 33%),
-		0 16px 32px rgba(var(--gray), 33%);
+	/* === 明亮模式（极透苹果乳白） === */
+	--bg-filter: brightness(1.05) blur(30px) saturate(190%);
+	--card-bg: rgba(255, 255, 255, 0.45); 
+	--card-border: rgba(255, 255, 255, 0.4);
+	--text-main: #1d1d1f;
+	--text-muted: #6e6e73;
+	--accent: #0071e3; 
+	--card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.04);
 }
-@font-face {
-	font-family: "Atkinson";
-	src: url("/fonts/atkinson-regular.woff") format("woff");
-	font-weight: 400;
-	font-style: normal;
-	font-display: swap;
-}
-@font-face {
-	font-family: "Atkinson";
-	src: url("/fonts/atkinson-bold.woff") format("woff");
-	font-weight: 700;
-	font-style: normal;
-	font-display: swap;
-}
-body {
-	font-family: "Atkinson", sans-serif;
-	margin: 0;
-	padding: 0;
-	text-align: left;
-	background: linear-gradient(var(--gray-gradient)) no-repeat;
-	background-size: 100% 600px;
-	word-wrap: break-word;
-	overflow-wrap: break-word;
-	color: rgb(var(--gray-dark));
-	font-size: 20px;
-	line-height: 1.7;
-}
-main {
-	width: 720px;
-	max-width: calc(100% - 2em);
-	margin: auto;
-	padding: 3em 1em;
-}
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-	margin: 0 0 0.5rem 0;
-	color: rgb(var(--black));
-	line-height: 1.2;
-}
-h1 {
-	font-size: 3.052em;
-}
-h2 {
-	font-size: 2.441em;
-}
-h3 {
-	font-size: 1.953em;
-}
-h4 {
-	font-size: 1.563em;
-}
-h5 {
-	font-size: 1.25em;
-}
-strong,
-b {
-	font-weight: 700;
-}
-a {
-	color: var(--accent);
-}
-a:hover {
-	color: var(--accent);
-}
-p {
-	margin-bottom: 1em;
-}
-.prose p {
-	margin-bottom: 2em;
-}
-textarea {
-	width: 100%;
-	font-size: 16px;
-}
-input {
-	font-size: 16px;
-}
-table {
-	width: 100%;
-}
-img {
-	max-width: 100%;
-	height: auto;
-	border-radius: 8px;
-}
-code {
-	padding: 2px 5px;
-	background-color: rgb(var(--gray-light));
-	border-radius: 2px;
-}
-pre {
-	padding: 1.5em;
-	border-radius: 8px;
-}
-pre > code {
-	all: unset;
-}
-blockquote {
-	border-left: 4px solid var(--accent);
-	padding: 0 0 0 20px;
-	margin: 0px;
-	font-size: 1.333em;
-}
-hr {
-	border: none;
-	border-top: 1px solid rgb(var(--gray-light));
-}
-@media (max-width: 720px) {
-	body {
-		font-size: 18px;
-	}
-	main {
-		padding: 1em;
+
+/* 🌓 自动适配 Windows 11 / 手机端系统暗黑模式 */
+@media (prefers-color-scheme: dark) {
+	:root {
+		/* === 深色模式（太空灰透光控制台） === */
+		--bg-filter: brightness(0.6) blur(30px) saturate(160%);
+		--card-bg: rgba(30, 30, 35, 0.55); 
+		--card-border: rgba(255, 255, 255, 0.08);
+		--text-main: #f5f5f7;
+		--text-muted: #86868b;
+		--accent: #2997ff;
+		--card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
 	}
 }
 
-.sr-only {
-	border: 0;
-	padding: 0;
+/* ==========================================
+   iOS 控制中心同款极光壁纸引擎
+   ========================================== */
+body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 	margin: 0;
-	position: absolute !important;
-	height: 1px;
-	width: 1px;
-	overflow: hidden;
-	/* IE6, IE7 - a 0 height clip, off to the bottom right of the visible 1px box */
-	clip: rect(1px 1px 1px 1px);
-	/* maybe deprecated but we need to support legacy browsers */
-	clip: rect(1px, 1px, 1px, 1px);
-	/* modern browsers, clip-path works inwards from each corner */
-	clip-path: inset(50%);
-	/* added line to stop words getting smushed together (as they go onto separate lines and some screen readers do not understand line feeds as a space */
-	white-space: nowrap;
+	padding: 0;
+	min-height: 100vh;
+	color: var(--text-main);
+	background-color: #000;
+	position: relative;
+}
+
+body::before {
+	content: '';
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	background-image: url('https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?q=80&w=1920&auto=format&fit=crop');
+	background-size: cover;
+	background-position: center;
+	filter: var(--bg-filter); /* iOS 系统级高斯模糊 */
+	z-index: -1;
+}
+
+/* ==========================================
+   🎯 头栏（Header）绝对无损物理复活
+   ========================================== */
+header {
+	background: var(--card-bg) !important;
+	backdrop-filter: blur(20px) saturate(180%) !important;
+	-webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+	border-bottom: 1px solid var(--card-border) !important;
+	padding: 1rem 2rem !important; /* 物理留出高档内边距 */
+	position: sticky;
+	top: 0;
+	z-index: 100;
+}
+
+/* 强制让头栏内部的导航、链接和文字全部正常显现，绝不隐身 */
+header nav {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	max-width: 960px;
+	margin: 0 auto;
+}
+
+header a, header h2, header h2 a {
+	color: var(--text-main) !important;
+	text-decoration: none !important;
+	font-weight: 600;
+	transition: opacity 0.2s ease;
+}
+
+header a:hover {
+	color: var(--accent) !important; /* 悬浮时亮起苹果蓝 */
+}
+
+/* 让头栏里的多国语言或者社交链接区域完美排开 */
+header .internal-links, header .social-links {
+	display: flex;
+	gap: 1.5rem;
+	align-items: center;
+}
+
+/* ==========================================
+   🎯 首页长条胶囊与博客卡片
+   ========================================== */
+main {
+	width: 100%;
+	max-width: 820px;
+	margin: 0 auto;
+	padding: 3rem 1.5rem;
+	box-sizing: border-box;
+}
+
+/* 首页那五个横条：100% 饱满全圆胶囊 */
+main ul li {
+	list-style: none !important;
+	background: var(--card-bg) !important;
+	backdrop-filter: blur(15px) !important;
+	-webkit-backdrop-filter: blur(15px) !important;
+	border: 1px solid var(--card-border) !important;
+	box-shadow: var(--card-shadow) !important;
+	
+	border-radius: 9999px !important; /* 纯正全圆胶囊 💊 */
+	padding: 0.8rem 2.2rem !important; 
+	margin-bottom: 1.2rem !important;
+	transition: transform 0.2s ease;
+}
+
+main ul li:hover {
+	transform: scale(1.015);
+	background: rgba(255, 255, 255, 0.55) !important;
+}
+
+/* 博客列表的大卡片：保持 24px 苹果高端圆角 */
+main section ul li, article, .prose {
+	border-radius: 24px !important; 
+}
+
+/* 修复文章内联代码块 */
+code {
+	background: rgba(255, 255, 255, 0.15);
+	padding: 0.2rem 0.6rem;
+	border-radius: 9999px;
+	font-size: 0.9em;
+}
+
+footer {
+	color: var(--text-muted);
+	border-top: 1px solid var(--card-border);
+	text-align: center;
+	padding: 3rem 1.5rem;
+	margin-top: 5rem;
 }
