@@ -5,7 +5,7 @@
 :root {
 	/* === 明亮模式（极透苹果乳白 - 2.0 满血透光版） === */
 	--bg-filter: brightness(1.05) blur(30px) saturate(190%);
-	--card-bg: rgba(255, 255, 255, 0.15); /* 🔴 砍掉厚重，大幅提升通透度 */
+	--card-bg: rgba(255, 255, 255, 0.15); 
 	--card-border: rgba(255, 255, 255, 0.25);
 	--text-main: #1d1d1f;
 	--text-muted: #6e6e73;
@@ -17,7 +17,7 @@
 @media (prefers-color-scheme: dark) {
 	:root {
 		--bg-filter: brightness(0.6) blur(30px) saturate(160%);
-		--card-bg: rgba(20, 20, 25, 0.2); /* 🔴 黑夜模式同步压低不透明度，极透深空 */
+		--card-bg: rgba(20, 20, 25, 0.2); 
 		--card-border: rgba(255, 255, 255, 0.06);
 		--text-main: #f5f5f7;
 		--text-muted: #86868b;
@@ -67,21 +67,20 @@ body::before {
 }
 
 /* ==========================================
-   🎯 头栏无损物理防乱与极致极窄液态玻璃优化
+   🎯 头栏极致对齐与垂直居中专项补丁
    ========================================== */
 header {
-	/* 🔴 核心对刀：背景调成 25% 超级悬浮质感 */
 	background: rgba(255, 255, 255, 0.12) !important;
 	backdrop-filter: blur(25px) saturate(200%) !important;
 	-webkit-backdrop-filter: blur(25px) saturate(200%) !important;
 	border-bottom: 1px solid var(--card-border) !important;
 	
-	/* 🔴 绝杀高度：上下 Padding 从 1rem 狠狠缩减到 0.4rem，宽度向两边微调，极致纤细 */
-	padding: 0.4rem 2rem !important; 
+	/* 🔴 核心对刀：给外框留出 0.8rem 均匀内边距，强制不顶天立地 */
+	padding: 0.8rem 2rem !important; 
 	position: sticky;
 	top: 0;
 	z-index: 100;
-	transition: background 0.3s ease, padding 0.2s ease;
+	transition: background 0.3s ease;
 }
 
 html.dark header {
@@ -90,13 +89,24 @@ html.dark header {
 
 header nav {
 	display: flex;
-	align-items: center;
+	align-items: center; /* 🔴 绝杀：强制内部所有文字图标绝对水平垂直居中 */
 	justify-content: space-between;
 	max-width: 960px;
 	margin: 0 auto;
+	height: auto !important; /* 解锁高度限制 */
 }
 
-header a, header h2, header h2 a {
+/* 修复大标题 mcxiaoshan Blog 自身的默认外边距挤压问题 */
+header h2 {
+	margin: 0 !important;
+	padding: 0 !important;
+	font-size: 1.4rem !important;
+	line-height: 1 !important; /* 强制单行，决不顶边 */
+	display: flex;
+	align-items: center;
+}
+
+header a, header h2 a {
 	color: var(--text-main) !important;
 	text-decoration: none !important;
 	font-weight: 600;
@@ -212,7 +222,7 @@ footer {
    ========================================== */
 @media (max-width: 720px) {
 	header {
-		padding: 0.5rem 1rem !important; /* 🔴 手机端同样收紧高度 */
+		padding: 0.8rem 1rem !important; 
 	}
 	header nav {
 		flex-direction: column; 
