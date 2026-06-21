@@ -34,7 +34,7 @@ import { SITE_TITLE } from '../consts';
 					<svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>
 				</a>
 				<a href="https://github.com/mcxiaoshan864/astro-blog-starter-template" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
-					<svg viewBox="0 0 16 16" width="22" height="22"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+					<svg viewBox="0 0 16 16" width="22" height="22"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53(5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
 				</a>
 			</div>
 		</div>
@@ -42,7 +42,6 @@ import { SITE_TITLE } from '../consts';
 </header>
 
 <script is:inline>
-	// 1. 明暗切换
 	const handleToggleClick = () => {
 		const element = document.documentElement;
 		element.classList.toggle("dark");
@@ -50,7 +49,6 @@ import { SITE_TITLE } from '../consts';
 	};
 	document.getElementById("theme-toggle")?.addEventListener("click", handleToggleClick);
 
-	// 2. 多语言字典
 	const langDict = {
 		'zh-CN': { home: '首页', blog: '博客', about: '关于' },
 		'zh-TW': { home: '首頁', blog: '網誌', about: '關於' },
@@ -58,13 +56,12 @@ import { SITE_TITLE } from '../consts';
 	};
 	const langOrder = ['zh-CN', 'zh-TW', 'en'];
 
-	// 3. 严格 X 轴控制核心
 	const track = document.getElementById('drag-track');
 	const handle = document.getElementById('drag-handle');
 	let isDragging = false;
 	let startX = 0;
 	let currentX = 0;
-	const stepWidth = 38; // 每个档位精确占位 38 像素
+	const stepWidth = 42; // 🔴 物理对位优化：拉大间距防止缩成一团卡死
 
 	const updateTexts = (lang) => {
 		const data = langDict[lang] || langDict['zh-CN'];
@@ -77,14 +74,13 @@ import { SITE_TITLE } from '../consts';
 		window.dispatchEvent(new CustomEvent('lang-changed', { detail: lang }));
 	};
 
-	// 磁吸对齐 (只算 X 轴偏移，强制 Y 轴为 0 🎯)
 	const snapToLang = (lang, useAnimation = true) => {
 		const idx = langOrder.indexOf(lang);
 		if (idx === -1) return;
 		
 		currentX = idx * stepWidth;
 		handle.style.transition = useAnimation ? 'transform 0.2s cubic-bezier(0.25, 1, 0.5, 1)' : 'none';
-		handle.style.transform = `translate3d(${currentX}px, 0px, 0px)`; // 物理锁死 Y 轴为 0px！
+		handle.style.transform = `translate3d(${currentX}px, 0px, 0px)`;
 		
 		document.querySelectorAll('.drag-label').forEach((lbl, i) => {
 			if(i === idx) lbl.classList.add('active');
@@ -92,39 +88,32 @@ import { SITE_TITLE } from '../consts';
 		});
 	};
 
-	// 触屏 / 鼠标无损边缘捕获
 	handle.addEventListener('pointerdown', (e) => {
 		isDragging = true;
 		handle.setPointerCapture(e.pointerId);
-		startX = e.clientX - currentX; // 锁定初始 X 相对坐标
+		startX = e.clientX - currentX;
 		handle.style.transition = 'none';
 	});
 
 	window.addEventListener('pointermove', (e) => {
 		if (!isDragging) return;
 		let moveX = e.clientX - startX;
-		
-		// 严防脱轨：滑块左边界 0px，右边界 76px (38 * 2)
 		if (moveX < 0) moveX = 0;
 		if (moveX > stepWidth * 2) moveX = stepWidth * 2;
 		
 		currentX = moveX;
-		handle.style.transform = `translate3d(${currentX}px, 0px, 0px)`; // 物理锁死，严禁上下移动！
+		handle.style.transform = `translate3d(${currentX}px, 0px, 0px)`;
 	});
 
 	window.addEventListener('pointerup', (e) => {
 		if (!isDragging) return;
 		isDragging = false;
-		
-		// 算最近刻度，自动重力回弹
 		const closestIdx = Math.round(currentX / stepWidth);
 		const targetLang = langOrder[closestIdx];
-		
 		snapToLang(targetLang);
 		updateTexts(targetLang);
 	});
 
-	// 点击标签直接滑过去
 	document.querySelectorAll('.drag-label').forEach(lbl => {
 		lbl.addEventListener('click', () => {
 			const idx = parseInt(lbl.getAttribute('data-idx'));
@@ -134,7 +123,6 @@ import { SITE_TITLE } from '../consts';
 		});
 	});
 
-	// 启动加载状态
 	const initialLang = localStorage.getItem('site-lang') || 'zh-CN';
 	setTimeout(() => { snapToLang(initialLang, false); updateTexts(initialLang); }, 40);
 </script>
@@ -143,12 +131,12 @@ import { SITE_TITLE } from '../consts';
 	header { margin: 0; padding: 0; width: 100%; }
 	nav { display: flex; align-items: center; justify-content: space-between; }
 	.internal-links { display: flex; gap: 1.5rem; }
-	.right-menu { display: flex; align-items: center; gap: 1.5rem; }
+	.right-menu { display: flex; align-items: center; gap: 1.2rem; }
 	.social-links { display: flex; align-items: center; gap: 1.2rem; }
 	.social-links a { display: flex; align-items: center; color: inherit; opacity: 0.7; }
 	.social-links a:hover { opacity: 1; }
 
-	/* 🎚️ 左右横向密封仓滑道 */
+	/* 🎚️ 满血拓宽物理轨道，拒绝卡死 */
 	.drag-lang-container {
 		position: relative;
 		display: flex;
@@ -156,11 +144,11 @@ import { SITE_TITLE } from '../consts';
 		border: 1px solid rgba(255, 255, 255, 0.15);
 		padding: 2px;
 		border-radius: 9999px;
-		width: 118px; /* 精精密卡死总宽，容纳 3 个 38px 标签 + 2px 内补 */
+		width: 130px; /* 🔴 完美拓宽，完美分配三个 42px 档位 */
 		height: 28px;
 		box-sizing: border-box;
 		user-select: none;
-		touch-action: none; /* 拦截任何系统上下滚动干扰，锁死左右拖拽 */
+		touch-action: none;
 	}
 	:global(html.dark) .drag-lang-container {
 		background: rgba(0, 0, 0, 0.2);
@@ -168,7 +156,7 @@ import { SITE_TITLE } from '../consts';
 	}
 	
 	.drag-label {
-		width: 38px;
+		width: 42px;
 		height: 100%;
 		font-size: 0.7rem;
 		font-weight: 700;
@@ -183,12 +171,11 @@ import { SITE_TITLE } from '../consts';
 	}
 	.drag-label.active { opacity: 1; }
 
-	/* 💊 纯正横滑液态滑块 (完美卡死在内轨 Y 轴零点) */
 	.drag-handle {
 		position: absolute;
-		top: 2px; /* 锁死顶部距离 */
-		left: 2px; /* 锁死初始左侧起始点 */
-		width: 38px; /* 尺寸完美覆盖 */
+		top: 2px;
+		left: 2px;
+		width: 42px; /* 🔴 滑块同步拓宽，极大增加判定区域 */
 		height: 22px;
 		background: rgba(255, 255, 255, 0.25);
 		border: 1px solid rgba(255, 255, 255, 0.2);
@@ -218,7 +205,7 @@ import { SITE_TITLE } from '../consts';
 	.sun { display: none; width: 16px; height: 16px; }
 	.moon { display: block; width: 16px; height: 16px; }
 	@media (max-width: 720px) {
-		.right-menu { gap: 0.8rem; }
-		.social-links { gap: 0.8rem; }
+		.right-menu { gap: 0.6rem; }
+		.social-links { display: none; } /* 移动端物理隐藏社媒图标，防止挤爆控制杆 */
 	}
 </style>
