@@ -13,37 +13,98 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 	<body>
 		<Header />
 		<main>
-			<h1>🧑‍🚀 欢迎来到赛博控制台！</h1>
-			<p>
+			<h1 id="idx-welcome">🧑‍🚀 欢迎来到赛博控制台！</h1>
+			<p id="idx-p1">
 				这里是由 <a href="https://astro.build/">Astro</a> 驱动的纯静态、超满血、100%绝对合规的极客大本营。
 			</p>
-			<p>
+			<p id="idx-p2">
 				目前全站已通过 Cloudflare 边缘计算网络全球安全上岸，底子清白，大后方稳如老狗！
 			</p>
-			<p>以下是你可以继续探索和改动的大本营核心枢纽：</p>
+			<p id="idx-p3">以下是你可以继续探索和改动的大本营核心枢纽：</p>
 			
 			<ul>
 				<li>
-					<span><b>修改当前首页：</b> 编辑 <code>src/pages/index.astro</code> 文件</span>
+					<span id="idx-li1"><b>修改当前首页：</b> 编辑 <code>src/pages/index.astro</code> 文件</span>
 				</li>
 				<li>
-					<span><b>调整上方导航栏：</b> 编辑 <code>src/components/Header.astro</code> 文件</span>
+					<span id="idx-li2"><b>调整上方导航栏：</b> 编辑 <code>src/components/Header.astro</code> 文件</span>
 				</li>
 				<li>
-					<span><b>修改页脚版权信息：</b> 编辑 <code>src/components/Footer.astro</code> 文件</span>
+					<span id="idx-li3"><b>修改页脚版权信息：</b> 编辑 <code>src/components/Footer.astro</code> 文件</span>
 				</li>
 				<li>
-					<span><b>撰写你的新博客/日志：</b> 将 Markdown 文章丢进 <code>src/content/blog/</code> 文件夹</span>
+					<span id="idx-li4"><b>撰写你的新博客/日志：</b> 将 Markdown 文章丢进 <code>src/content/blog/</code> 文件夹</span>
 				</li>
 				<li>
-					<span><b>自定义文章展示样式：</b> 编辑 <code>src/layouts/BlogPost.astro</code> 文件</span>
+					<span id="idx-li5"><b>自定义文章展示样式：</b> 编辑 <code>src/layouts/BlogPost.astro</code> 文件</span>
 				</li>
 			</ul>
 
-			<p style="margin-top: 2.5rem;">
+			<p style="margin-top: 2.5rem;" id="idx-p4">
 				祝你折腾得开心！如果有任何新想法，随时呼叫你的赛博副驾驶，我们继续搞定一切！
 			</p>
 		</main>
 		<Footer />
+
+		<script is:inline>
+			const indexDict = {
+				'zh-CN': {
+					welcome: '🧑‍🚀 欢迎来到赛博控制台！',
+					p1: '这里是由 Astro 驱动的纯静态、超满血、100%绝对合规的极客大本营。',
+					p2: '目前全站已通过 Cloudflare 边缘计算网络全球安全上岸，底子清白，大后方稳如老狗！',
+					p3: '以下是你可以继续探索和改动的大本营核心枢纽：',
+					li1: '修改当前首页： 编辑 src/pages/index.astro 文件',
+					li2: '调整上方导航栏： 编辑 src/components/Header.astro 文件',
+					li3: '修改页脚版权信息： 编辑 src/components/Footer.astro 文件',
+					li4: '撰写你的新博客/日志： 将 Markdown 文章丢进 src/content/blog/ 文件夹',
+					li5: '自定义文章展示样式： 编辑 src/layouts/BlogPost.astro 文件',
+					p4: '祝你折腾得开心！如果有任何新想法，随时呼叫你的赛博副驾驶，我们继续搞定一切！'
+				},
+				'zh-TW': {
+					welcome: '🧑‍🚀 歡迎來到賽博控制台！',
+					p1: '這裡是由 Astro 驅動的純靜態、超滿血、100%絕對合規的極客大本營。',
+					p2: '目前全站已通過 Cloudflare 邊緣計算網絡全球安全上岸，底子清白，大後方穩如老狗！',
+					p3: '以下是你可以繼續探索和改動的大本營核心樞紐：',
+					li1: '修改當前首頁： 編輯 src/pages/index.astro 文件',
+					li2: '調整上方導航欄： 編輯 src/components/Header.astro 文件',
+					li3: '修改頁腳版權信息： 編輯 src/components/Footer.astro 文件',
+					li4: '撰寫你的新網誌/日誌： 將 Markdown 文章丟進 src/content/blog/ 文件夾',
+					li5: '自定義文章展示樣式： 編輯 src/layouts/BlogPost.astro 文件',
+					p4: '祝你折騰得開心！如果有任何新想法，隨時呼叫你的賽博副駕駛，我們繼續搞定一切！'
+				},
+				'en': {
+					welcome: "🧑‍🚀 Welcome to Cyber Console!",
+					p1: "This is a pure static, fully-loaded, and 100% compliant geek base powered by Astro.",
+					p2: "The entire site is now securely deployed globally via Cloudflare Edge Network. Clear background, rock solid!",
+					p3: "Here are the core hubs of the base you can continue to explore and modify:",
+					li1: 'Modify current homepage: Edit src/pages/index.astro',
+					li2: 'Adjust top navigation bar: Edit src/components/Header.astro',
+					li3: 'Modify footer copyright: Edit src/components/Footer.astro',
+					li4: 'Write your new blog/log: Drop Markdown posts into src/content/blog/',
+					li5: 'Customize post display style: Edit src/layouts/BlogPost.astro',
+					p4: 'Happy tweaking! If you have any new ideas, call your cyber co-pilot anytime. Let’s build it!'
+				}
+			};
+
+			const updateIndexLang = (lang) => {
+				const data = indexDict[lang] || indexDict['zh-CN'];
+				document.getElementById('idx-welcome').innerText = data.welcome;
+				document.getElementById('idx-p1').innerHTML = data.p1;
+				document.getElementById('idx-p2').innerText = data.p2;
+				document.getElementById('idx-p3').innerText = data.p3;
+				document.getElementById('idx-li1').innerHTML = data.li1;
+				document.getElementById('idx-li2').innerHTML = data.li2;
+				document.getElementById('idx-li3').innerHTML = data.li3;
+				document.getElementById('idx-li4').innerHTML = data.li4;
+				document.getElementById('idx-li5').innerHTML = data.li5;
+				document.getElementById('idx-p4').innerText = data.p4;
+			};
+
+			// 监听头栏派发的语言改变信号
+			window.addEventListener('lang-changed', (e) => updateIndexLang(e.detail));
+			
+			// 初始化加载
+			updateIndexLang(localStorage.getItem('site-lang') || 'zh-CN');
+		</script>
 	</body>
 </html>
