@@ -42,7 +42,7 @@ import { SITE_TITLE } from '../consts';
 </header>
 
 <script is:inline>
-	// 1. 明暗模式基础逻辑
+	// 1. 明暗切换
 	const handleToggleClick = () => {
 		const element = document.documentElement;
 		element.classList.toggle("dark");
@@ -50,7 +50,7 @@ import { SITE_TITLE } from '../consts';
 	};
 	document.getElementById("theme-toggle")?.addEventListener("click", handleToggleClick);
 
-	// 2. 多语言字典定义
+	// 2. 多语言字典
 	const langDict = {
 		'zh-CN': { home: '首页', blog: '博客', about: '关于' },
 		'zh-TW': { home: '首頁', blog: '網誌', about: '關於' },
@@ -58,13 +58,13 @@ import { SITE_TITLE } from '../consts';
 	};
 	const langOrder = ['zh-CN', 'zh-TW', 'en'];
 
-	// 3. 拖拽核心物理引擎
+	// 3. 严格 X 轴控制核心
 	const track = document.getElementById('drag-track');
 	const handle = document.getElementById('drag-handle');
 	let isDragging = false;
 	let startX = 0;
-	let handleLeft = 0;
-	const stepWidth = 38; // 每一个语言档位的物理像素间距（对齐下方CSS）
+	let currentX = 0;
+	const stepWidth = 38; // 每个档位精确占位 38 像素
 
 	const updateTexts = (lang) => {
 		const data = langDict[lang] || langDict['zh-CN'];
@@ -77,63 +77,54 @@ import { SITE_TITLE } from '../consts';
 		window.dispatchEvent(new CustomEvent('lang-changed', { detail: lang }));
 	};
 
-	// 物理定位滑块位置 (带丝滑果味吸附过渡)
+	// 磁吸对齐 (只算 X 轴偏移，强制 Y 轴为 0 🎯)
 	const snapToLang = (lang, useAnimation = true) => {
 		const idx = langOrder.indexOf(lang);
 		if (idx === -1) return;
 		
-		if (useAnimation) handle.style.transition = 'transform 0.25s cubic-bezier(0.25, 1, 0.5, 1)';
-		else handle.style.transition = 'none';
+		currentX = idx * stepWidth;
+		handle.style.transition = useAnimation ? 'transform 0.2s cubic-bezier(0.25, 1, 0.5, 1)' : 'none';
+		handle.style.transform = `translate3d(${currentX}px, 0px, 0px)`; // 物理锁死 Y 轴为 0px！
 		
-		// 精密物理平移量计算
-		handle.style.transform = `translateX(${idx * stepWidth}px)`;
-		
-		// 同步高亮轨道文字
 		document.querySelectorAll('.drag-label').forEach((lbl, i) => {
 			if(i === idx) lbl.classList.add('active');
 			else lbl.classList.remove('active');
 		});
 	};
 
-	// 双端原生 Pointer 事件（同时完美兼容电脑鼠标与手机触屏）
+	// 触屏 / 鼠标无损边缘捕获
 	handle.addEventListener('pointerdown', (e) => {
 		isDragging = true;
 		handle.setPointerCapture(e.pointerId);
-		startX = e.clientX;
-		// 抓取当前滑块已经偏移的物理矩阵值
-		const style = window.getComputedStyle(handle);
-		const matrix = new WebKitCSSMatrix(style.transform);
-		handleLeft = matrix.m41; 
-		handle.style.transition = 'none'; // 拖拽时物理断开延迟动画
+		startX = e.clientX - currentX; // 锁定初始 X 相对坐标
+		handle.style.transition = 'none';
 	});
 
 	window.addEventListener('pointermove', (e) => {
 		if (!isDragging) return;
-		const deltaX = e.clientX - startX;
-		let newLeft = handleLeft + deltaX;
+		let moveX = e.clientX - startX;
 		
-		// 边界死锁：严禁滑块脱轨跑偏 (0px 到 76px 之间)
-		if (newLeft < 0) newLeft = 0;
-		if (newLeft > stepWidth * 2) newLeft = stepWidth * 2;
+		// 严防脱轨：滑块左边界 0px，右边界 76px (38 * 2)
+		if (moveX < 0) moveX = 0;
+		if (moveX > stepWidth * 2) moveX = stepWidth * 2;
 		
-		handle.style.transform = `translateX(${newLeft}px)`;
+		currentX = moveX;
+		handle.style.transform = `translate3d(${currentX}px, 0px, 0px)`; // 物理锁死，严禁上下移动！
 	});
 
 	window.addEventListener('pointerup', (e) => {
 		if (!isDragging) return;
 		isDragging = false;
 		
-		// 松手刹那：精密锁算离哪个档位最近，触发物理自动吸附 (Snap)
-		const currentMatrix = new WebKitCSSMatrix(window.getComputedStyle(handle));
-		const currentLeft = currentMatrix.m41;
-		const closestIdx = Math.round(currentLeft / stepWidth);
-		
+		// 算最近刻度，自动重力回弹
+		const closestIdx = Math.round(currentX / stepWidth);
 		const targetLang = langOrder[closestIdx];
+		
 		snapToLang(targetLang);
 		updateTexts(targetLang);
 	});
 
-	// 点击轨道任意位置也能直接滑过去
+	// 点击标签直接滑过去
 	document.querySelectorAll('.drag-label').forEach(lbl => {
 		lbl.addEventListener('click', () => {
 			const idx = parseInt(lbl.getAttribute('data-idx'));
@@ -143,12 +134,9 @@ import { SITE_TITLE } from '../consts';
 		});
 	});
 
-	// 初始化语言记忆状态 (首刷不走动画)
+	// 启动加载状态
 	const initialLang = localStorage.getItem('site-lang') || 'zh-CN';
-	setTimeout(() => {
-		snapToLang(initialLang, false);
-		updateTexts(initialLang);
-	}, 50);
+	setTimeout(() => { snapToLang(initialLang, false); updateTexts(initialLang); }, 40);
 </script>
 
 <style>
@@ -160,7 +148,7 @@ import { SITE_TITLE } from '../consts';
 	.social-links a { display: flex; align-items: center; color: inherit; opacity: 0.7; }
 	.social-links a:hover { opacity: 1; }
 
-	/* 🎚️ 极客图层：高通透物理拖拽密封舱轨道 */
+	/* 🎚️ 左右横向密封仓滑道 */
 	.drag-lang-container {
 		position: relative;
 		display: flex;
@@ -168,11 +156,11 @@ import { SITE_TITLE } from '../consts';
 		border: 1px solid rgba(255, 255, 255, 0.15);
 		padding: 2px;
 		border-radius: 9999px;
-		width: 114px; /* 38px * 3 精确锁死总宽 */
+		width: 118px; /* 精精密卡死总宽，容纳 3 个 38px 标签 + 2px 内补 */
 		height: 28px;
 		box-sizing: border-box;
 		user-select: none;
-		touch-action: none; /* 强制拦截手机浏览器默认滑动手势，交给引擎 */
+		touch-action: none; /* 拦截任何系统上下滚动干扰，锁死左右拖拽 */
 	}
 	:global(html.dark) .drag-lang-container {
 		background: rgba(0, 0, 0, 0.2);
@@ -193,16 +181,14 @@ import { SITE_TITLE } from '../consts';
 		z-index: 2;
 		transition: opacity 0.2s ease;
 	}
-	.drag-label.active {
-		opacity: 1;
-	}
+	.drag-label.active { opacity: 1; }
 
-	/* 💊 悬浮液态玻璃物理滑块（支持拖拽） */
+	/* 💊 纯正横滑液态滑块 (完美卡死在内轨 Y 轴零点) */
 	.drag-handle {
 		position: absolute;
-		top: 2px;
-		left: 2px;
-		width: 34px; /* 完美贴合内壁 */
+		top: 2px; /* 锁死顶部距离 */
+		left: 2px; /* 锁死初始左侧起始点 */
+		width: 38px; /* 尺寸完美覆盖 */
 		height: 22px;
 		background: rgba(255, 255, 255, 0.25);
 		border: 1px solid rgba(255, 255, 255, 0.2);
@@ -211,19 +197,14 @@ import { SITE_TITLE } from '../consts';
 		cursor: grab;
 		z-index: 1;
 		touch-action: none;
+		will-change: transform;
 	}
-	.drag-handle:active {
-		cursor: grabbing;
-		background: rgba(255, 255, 255, 0.35);
-	}
-	:global(html.dark) .drag-handle {
-		background: rgba(255, 255, 255, 0.12);
-		border-color: rgba(255, 255, 255, 0.1);
-	}
+	.drag-handle:active { cursor: grabbing; background: rgba(255, 255, 255, 0.35); }
+	:global(html.dark) .drag-handle { background: rgba(255, 255, 255, 0.12); border-color: rgba(255, 255, 255, 0.1); }
 
 	#theme-toggle {
-		background: rgba(255, 255, 255, 0.2);
-		border: 1px solid rgba(255, 255, 255, 0.3);
+		background: rgba(255, 255, 255, 0.12);
+		border: 1px solid rgba(255, 255, 255, 0.2);
 		padding: 0.5rem;
 		border-radius: 9999px;
 		cursor: pointer;
