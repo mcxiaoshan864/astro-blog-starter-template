@@ -5,13 +5,21 @@ import { SITE_TITLE } from '../consts';
 
 <header>
 	<nav>
-		<h2><a href="/">{SITE_TITLE}</a></h2>
+		<h2><a href="/" id="nav-title">{SITE_TITLE}</a></h2>
+		
 		<div class="internal-links">
-			<HeaderLink href="/">首页</HeaderLink>
-			<HeaderLink href="/blog">博客</HeaderLink>
-			<HeaderLink href="/about">关于</HeaderLink>
+			<HeaderLink href="/" id="lang-home">首页</HeaderLink>
+			<HeaderLink href="/blog" id="lang-blog">博客</HeaderLink>
+			<HeaderLink href="/about" id="lang-about">关于</HeaderLink>
 		</div>
+		
 		<div class="right-menu">
+			<div class="lang-group">
+				<button class="lang-btn" data-lang="zh-CN">简</button>
+				<button class="lang-btn" data-lang="zh-TW">繁</button>
+				<button class="lang-btn" data-lang="en">EN</button>
+			</div>
+
 			<button id="theme-toggle" aria-label="Toggle theme">
 				<svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
 				<svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
@@ -33,93 +41,123 @@ import { SITE_TITLE } from '../consts';
 </header>
 
 <script is:inline>
+	// 1. 明暗模式基础逻辑
 	const handleToggleClick = () => {
 		const element = document.documentElement;
 		element.classList.toggle("dark");
-		
-		const isDark = element.classList.contains("dark");
-		localStorage.setItem("theme", isDark ? "dark" : "light");
+		localStorage.setItem("theme", element.classList.contains("dark") ? "dark" : "light");
+	};
+	document.getElementById("theme-toggle")?.addEventListener("click", handleToggleClick);
+
+	// 2. 核心多语言局部无损翻译字典
+	const langDict = {
+		'zh-CN': { home: '首页', blog: '博客', about: '关于' },
+		'zh-TW': { home: '首頁', blog: '網誌', about: '關於' },
+		'en': { home: 'Home', blog: 'Blog', about: 'About' }
 	};
 
-	// 绑定点击事件
-	document.getElementById("theme-toggle")?.addEventListener("click", handleToggleClick);
-	
-	// 在页面加载时，自动对齐本地缓存状态
-	const savedTheme = localStorage.getItem("theme");
-	if (savedTheme === "dark" || (!savedTheme && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
-		document.documentElement.classList.add("dark");
-	} else {
-		document.documentElement.classList.remove("dark");
-	}
+	const applyLanguage = (lang) => {
+		// 切换按钮的高亮状态
+		document.querySelectorAll('.lang-btn').forEach(btn => {
+			if(btn.getAttribute('data-lang') === lang) {
+				btn.classList.add('active');
+			} else {
+				btn.classList.remove('active');
+			}
+		});
+		
+		// 物理更改本地标签文字
+		const data = langDict[lang] || langDict['zh-CN'];
+		const homeBtn = document.getElementById('lang-home');
+		const blogBtn = document.getElementById('lang-blog');
+		const aboutBtn = document.getElementById('lang-about');
+		
+		if(homeBtn) homeBtn.innerText = data.home;
+		if(blogBtn) blogBtn.innerText = data.blog;
+		if(aboutBtn) aboutBtn.innerText = data.about;
+		
+		// 并在 html 节点上打上标记，方便其他页面组件识别
+		document.documentElement.setAttribute('lang', lang);
+		localStorage.setItem('site-lang', lang);
+		
+		// 派发全局事件，通知首页和关于页同步更新文字
+		window.dispatchEvent(new CustomEvent('lang-changed', { detail: lang }));
+	};
+
+	// 绑定多语言按钮点击事件
+	document.querySelectorAll('.lang-btn').forEach(btn => {
+		btn.addEventListener('click', () => {
+			const targetLang = btn.getAttribute('data-lang');
+			applyLanguage(targetLang);
+		});
+	});
+
+	// 加载时自动初始化语言记忆锁
+	const savedLang = localStorage.getItem('site-lang') || 'zh-CN';
+	applyLanguage(savedLang);
 </script>
 
 <style>
-	header {
-		margin: 0;
-		padding: 0;
-		width: 100%;
-	}
-	nav {
+	header { margin: 0; padding: 0; width: 100%; }
+	nav { display: flex; align-items: center; justify-content: space-between; }
+	.internal-links { display: flex; gap: 1.5rem; }
+	.right-menu { display: flex; align-items: center; gap: 1.5rem; }
+	.social-links { display: flex; align-items: center; gap: 1.2rem; }
+	.social-links a { display: flex; align-items: center; color: inherit; opacity: 0.7; }
+	.social-links a:hover { opacity: 1; }
+
+	/* 🌐 极简高通透语言按钮药丸组 */
+	.lang-group {
 		display: flex;
-		align-items: center;
-		justify-content: space-between;
+		background: rgba(255, 255, 255, 0.1);
+		border: 1px solid rgba(255, 255, 255, 0.15);
+		padding: 2px;
+		border-radius: 9999px;
 	}
-	.internal-links {
-		display: flex;
-		gap: 1.5rem;
-	}
-	.right-menu {
-		display: flex;
-		align-items: center;
-		gap: 1.5rem; /* 让开关按钮和社交图标保持距离 */
-	}
-	.social-links {
-		display: flex;
-		align-items: center;
-		gap: 1.2rem;
-	}
-	.social-links a {
-		display: flex;
-		align-items: center;
+	.lang-btn {
+		background: transparent;
+		border: none;
 		color: inherit;
-		opacity: 0.7;
-		transition: opacity 0.2s ease;
+		font-size: 0.75rem;
+		font-weight: 600;
+		padding: 0.3rem 0.6rem;
+		border-radius: 9999px;
+		cursor: pointer;
+		opacity: 0.5;
+		transition: all 0.2s ease;
 	}
-	.social-links a:hover {
+	.lang-btn:hover {
+		opacity: 0.8;
+	}
+	/* 激活状态下的高透小药丸 */
+	.lang-btn.active {
+		background: rgba(255, 255, 255, 0.25);
 		opacity: 1;
+		box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+	}
+	:global(html.dark) .lang-btn.active {
+		background: rgba(255, 255, 255, 0.12);
 	}
 
-	/* 🌗 高通透全圆小按钮样式 */
 	#theme-toggle {
 		background: rgba(255, 255, 255, 0.2);
 		border: 1px solid rgba(255, 255, 255, 0.3);
 		padding: 0.5rem;
-		border-radius: 9999px; /* 完美药丸胶囊开关 💊 */
+		border-radius: 9999px;
 		cursor: pointer;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		color: inherit;
-		transition: all 0.2s ease;
 		width: 36px;
 		height: 36px;
 	}
-	#theme-toggle:hover {
-		background: rgba(255, 255, 255, 0.4);
-		transform: scale(1.05);
-	}
-
-	/* 物理图标互斥逻辑 */
 	.sun { display: none; width: 18px; height: 18px; }
 	.moon { display: block; width: 18px; height: 18px; }
-
-	/* 当网页被赋予 dark 类时，图标自动反转 */
-	:global(html.dark) .sun { display: block; }
-	:global(html.dark) .moon { display: none; }
-	:global(html.dark) #theme-toggle { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.15); }
-
 	@media (max-width: 720px) {
 		.right-menu { gap: 0.8rem; }
 		.social-links { gap: 0.8rem; }
+		.lang-group { padding: 1px; }
+		.lang-btn { padding: 0.2rem 0.4rem; font-size: 0.7rem; }
 	}
 </style>
