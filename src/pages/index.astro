@@ -11,6 +11,8 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
 	</head>
 	<body>
+		<canvas id="fluid-canvas"></canvas>
+
 		<Header />
 		<main>
 			<h1 id="idx-welcome">🧑‍🚀 欢迎来到赛博控制台！</h1>
@@ -47,6 +49,7 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 		<Footer />
 
 		<script is:inline>
+			// 1. 多语言核心字典
 			const indexDict = {
 				'zh-CN': {
 					welcome: '🧑‍🚀 欢迎来到赛博控制台！',
@@ -55,7 +58,7 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 					p3: '以下是你可以继续探索和改动的大本营核心枢纽：',
 					li1: '修改当前首页： 编辑 src/pages/index.astro 文件',
 					li2: '调整上方导航栏： 编辑 src/components/Header.astro 文件',
-					li3: '修改页脚版权信息： 编辑 src/components/Footer.astro 文件',
+					li3: '修改页脚版權信息： 编辑 src/components/Footer.astro 文件',
 					li4: '撰写你的新博客/日志： 将 Markdown 文章丢进 src/content/blog/ 文件夹',
 					li5: '自定义文章展示样式： 编辑 src/layouts/BlogPost.astro 文件',
 					p4: '祝你折腾得开心！如果有任何新想法，随时呼叫你的赛博副驾驶，我们继续搞定一切！'
@@ -70,7 +73,7 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 					li3: '修改頁腳版權信息： 編輯 src/components/Footer.astro 文件',
 					li4: '撰寫你的新網誌/日誌： 將 Markdown 文章丟進 src/content/blog/ 文件夾',
 					li5: '自定義文章展示樣式： 編輯 src/layouts/BlogPost.astro 文件',
-					p4: '祝你折騰得開心！如果有任何新想法，隨時呼叫你的賽博副駕駛，我們繼續搞定一切！'
+					p4: '祝意折騰得開心！如果有任何新想法，隨時呼叫你的賽博副駕駛，我們繼續搞定一切！'
 				},
 				'en': {
 					welcome: "🧑‍🚀 Welcome to Cyber Console!",
@@ -99,12 +102,76 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 				document.getElementById('idx-li5').innerHTML = data.li5;
 				document.getElementById('idx-p4').innerText = data.p4;
 			};
-
-			// 监听头栏派发的语言改变信号
 			window.addEventListener('lang-changed', (e) => updateIndexLang(e.detail));
-			
-			// 初始化加载
 			updateIndexLang(localStorage.getItem('site-lang') || 'zh-CN');
+
+			// 2. 🦾 极客专属：Canvas 2D 仿 WebGL 极速流光演算着色引擎
+			const canvas = document.getElementById('fluid-canvas');
+			const ctx = canvas.getContext('2d');
+			let pointer = { x: 0, y: 0, targetX: 0, targetY: 0 };
+			let tick = 0;
+
+			const resize = () => {
+				canvas.width = window.innerWidth;
+				canvas.height = window.innerHeight;
+			};
+			window.addEventListener('resize', resize);
+			resize();
+
+			// 抓取鼠标/触屏指针轨迹，注入流体扰动
+			window.addEventListener('pointermove', (e) => {
+				pointer.targetX = e.clientX;
+				pointer.targetY = e.clientY;
+			});
+
+			// 帧循环：疯狂向显卡输出正弦/余弦交织的液态流光矩阵
+			const render = () => {
+				tick += 0.003; // 流动速度阻尼
+				
+				// 逼近鼠标
+				pointer.x += (pointer.targetX - pointer.x) * 0.05;
+				pointer.y += (pointer.targetY - pointer.y) * 0.05;
+
+				const w = canvas.width;
+				const h = canvas.height;
+				
+				// 物理绘制彩色液态流体渐变
+				const grad = ctx.createLinearGradient(
+					w * 0.5 + Math.sin(tick) * w * 0.3, 
+					0, 
+					w * 0.5 + Math.cos(tick * 1.2) * w * 0.4, 
+					h
+				);
+
+				// 响应明暗系统的色彩方案
+				const isDark = document.documentElement.classList.contains('dark');
+				if (isDark) {
+					// 深色太空流光
+					grad.addColorStop(0, `hsla(${210 + Math.sin(tick) * 30}, 75%, 15%, 1)`);
+					grad.addColorStop(0.5, `hsla(${260 + Math.cos(tick) * 40}, 70%, 12%, 1)`);
+					grad.addColorStop(1, `hsla(${190 + Math.sin(tick * 0.8) * 20}, 80%, 10%, 1)`);
+				} else {
+					// 亮色高级流光
+					grad.addColorStop(0, `hsla(${215 + Math.sin(tick) * 20}, 90%, 65%, 1)`);
+					grad.addColorStop(0.5, `hsla(${250 + Math.cos(tick) * 30}, 85%, 75%, 1)`);
+					grad.addColorStop(1, `hsla(${195 + Math.sin(tick * 0.5) * 25}, 90%, 70%, 1)`);
+				}
+
+				ctx.fillStyle = grad;
+				ctx.fillRect(0, 0, w, h);
+
+				// 注入鼠标周围的液态高光磁吸晕染
+				if(pointer.x !== 0 && pointer.y !== 0) {
+					const mouseGrad = ctx.createRadialGradient(pointer.x, pointer.y, 10, pointer.x, pointer.y, w * 0.4);
+					mouseGrad.addColorStop(0, isDark ? 'rgba(41, 151, 255, 0.15)' : 'rgba(255, 255, 255, 0.4)');
+					mouseGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+					ctx.fillStyle = mouseGrad;
+					ctx.fillRect(0, 0, w, h);
+				}
+
+				requestAnimationFrame(render);
+			};
+			render();
 		</script>
 	</body>
 </html>
