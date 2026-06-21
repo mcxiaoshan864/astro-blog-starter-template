@@ -10,56 +10,19 @@ type Props = CollectionEntry<'blog'>['data'];
 const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 ---
 
-<html lang="en">
+<html lang="zh-CN">
 	<head>
 		<BaseHead title={title} description={description} />
-		<style>
-			main {
-				width: calc(100% - 2em);
-				max-width: 100%;
-				margin: 0;
-			}
-			.hero-image {
-				width: 100%;
-			}
-			.hero-image img {
-				display: block;
-				margin: 0 auto;
-				border-radius: 12px;
-				box-shadow: var(--box-shadow);
-			}
-			.prose {
-				width: 720px;
-				max-width: calc(100% - 2em);
-				margin: auto;
-				padding: 1em;
-				color: rgb(var(--gray-dark));
-			}
-			.title {
-				margin-bottom: 1em;
-				padding: 1em 0;
-				text-align: center;
-				line-height: 1;
-			}
-			.title h1 {
-				margin: 0 0 0.5em 0;
-			}
-			.date {
-				margin-bottom: 0.5em;
-				color: rgb(var(--gray));
-			}
-			.last-updated-on {
-				font-style: italic;
-			}
-		</style>
 	</head>
 
 	<body>
+		<canvas id="fluid-canvas-global"></canvas>
+
 		<Header />
 		<main>
 			<article>
 				<div class="hero-image">
-					{heroImage && <img width={1020} height={510} src={heroImage} alt="" />}
+					{heroImage && <img width={1024} height={512} src={heroImage} alt="" class="article-hero-img" />}
 				</div>
 				<div class="prose">
 					<div class="title">
@@ -73,7 +36,7 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 								)
 							}
 						</div>
-						<h1>{title}</h1>
+						<h1 style="color: var(--text-main);">{title}</h1>
 						<hr />
 					</div>
 					<slot />
@@ -81,5 +44,106 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 			</article>
 		</main>
 		<Footer />
+
+		<script is:inline>
+			const canvas = document.getElementById('fluid-canvas-global');
+			if (canvas) {
+				const ctx = canvas.getContext('2d');
+				let pointer = { x: 0, y: 0, targetX: 0, targetY: 0 };
+				let tick = 0;
+
+				const resize = () => {
+					canvas.width = window.innerWidth;
+					canvas.height = window.innerHeight;
+				};
+				window.addEventListener('resize', resize);
+				resize();
+
+				window.addEventListener('pointermove', (e) => {
+					pointer.targetX = e.clientX;
+					pointer.targetY = e.clientY;
+				});
+
+				const render = () => {
+					tick += 0.003;
+					pointer.x += (pointer.targetX - pointer.x) * 0.05;
+					pointer.y += (pointer.targetY - pointer.y) * 0.05;
+
+					const w = canvas.width;
+					const h = canvas.height;
+					const grad = ctx.createLinearGradient(w * 0.5 + Math.sin(tick) * w * 0.3, 0, w * 0.5 + Math.cos(tick * 1.2) * w * 0.4, h);
+					const isDark = document.documentElement.classList.contains('dark');
+
+					if (isDark) {
+						grad.addColorStop(0, `hsla(${210 + Math.sin(tick) * 30}, 75%, 15%, 1)`);
+						grad.addColorStop(0.5, `hsla(${260 + Math.cos(tick) * 40}, 70%, 12%, 1)`);
+						grad.addColorStop(1, `hsla(${190 + Math.sin(tick * 0.8) * 20}, 80%, 10%, 1)`);
+					} else {
+						grad.addColorStop(0, `hsla(${215 + Math.sin(tick) * 20}, 90%, 65%, 1)`);
+						grad.addColorStop(0.5, `hsla(${250 + Math.cos(tick) * 30}, 85%, 75%, 1)`);
+						grad.addColorStop(1, `hsla(${195 + Math.sin(tick * 0.5) * 25}, 90%, 70%, 1)`);
+					}
+
+					ctx.fillStyle = grad;
+					ctx.fillRect(0, 0, w, h);
+
+					if(pointer.x !== 0 && pointer.y !== 0) {
+						const mouseGrad = ctx.createRadialGradient(pointer.x, pointer.y, 10, pointer.x, pointer.y, w * 0.4);
+						mouseGrad.addColorStop(0, isDark ? 'rgba(41, 151, 255, 0.15)' : 'rgba(255, 255, 255, 0.4)');
+						mouseGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+						ctx.fillStyle = mouseGrad;
+						ctx.fillRect(0, 0, w, h);
+					}
+					requestAnimationFrame(render);
+				};
+				render();
+			}
+		</script>
 	</body>
 </html>
+
+<style>
+	/* 保证子页面的画布同样完美垫底 */
+	#fluid-canvas-global {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100vw !important;
+		height: 100vh !important;
+		z-index: -2;
+		pointer-events: none;
+	}
+	main {
+		width: 100%;
+		max-width: 820px;
+		margin: 0 auto;
+		padding: 2rem 1.5rem;
+		box-sizing: border-box;
+	}
+	article {
+		background: var(--card-bg);
+		backdrop-filter: blur(20px) saturate(180%);
+		-webkit-backdrop-filter: blur(20px) saturate(180%);
+		border: 1px solid var(--card-border);
+		box-shadow: var(--card-shadow);
+		border-radius: 24px;
+		padding: 2rem;
+		margin-top: 2rem;
+	}
+	.prose {
+		color: var(--text-main);
+	}
+	.title h1 {
+		margin: 0 0 0.5rem 0;
+	}
+	.date {
+		color: var(--text-muted);
+		margin-bottom: 1rem;
+		font-size: 0.9rem;
+	}
+	hr {
+		border: 0;
+		border-top: 1px solid var(--card-border);
+		margin: 1.5rem 0;
+	}
+</style>
