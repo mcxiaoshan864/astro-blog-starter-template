@@ -4,141 +4,92 @@
 
 :root {
 	/* === 明亮模式（极透苹果乳白） === */
-	--bg-filter: brightness(1.05) blur(30px) saturate(190%);
-	--card-bg: rgba(255, 255, 255, 0.15); 
-	--card-border: rgba(255, 255, 255, 0.25);
+	--card-bg: rgba(255, 255, 255, 0.18); 
+	--card-border: rgba(255, 255, 255, 0.3);
 	--text-main: #1d1d1f;
-	--text-muted: #6e6e73;
+	--text-muted: #515154;
 	--accent: #0071e3; 
-	--card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.02);
+	--card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.01);
 }
 
-/* 🌓 1. 自动适配系统暗黑模式（基础兜底） */
+/* 🌓 1. 自动适配系统暗黑模式 */
 @media (prefers-color-scheme: dark) {
 	:root {
-		--bg-filter: brightness(0.6) blur(30px) saturate(160%);
-		--card-bg: rgba(20, 20, 25, 0.2); 
-		--card-border: rgba(255, 255, 255, 0.06);
+		--card-bg: rgba(20, 20, 25, 0.15); 
+		--card-border: rgba(255, 255, 255, 0.07);
 		--text-main: #f5f5f7;
-		--text-muted: #86868b;
+		--text-muted: #a1a1a6;
 		--accent: #2997ff;
-		--card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+		--card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.15);
 	}
 }
 
+/* 🎯 2. 强行物理锁死：响应手动按钮 */
+html.dark {
+	--card-bg: rgba(20, 20, 25, 0.15) !important; 
+	--card-border: rgba(255, 255, 255, 0.07) !important;
+	--text-main: #f5f5f7 !important;
+	--text-muted: #a1a1a6 !important;
+	--accent: #2997ff !important;
+	--card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.15) !important;
+}
+
 /* ==========================================
-   🌊 史诗级级联控光核心（解绑 !important，物理降噪）
+   🌊 史诗级级联控光核心（全站明暗“瀑布顺滑过渡”引擎）
    ========================================== */
-/* 锁死全站所有元素的色彩过渡阻尼，0.5秒优雅漫延 */
 html, body, header, main, main *, footer, a, svg, button {
 	transition: background 0.5s cubic-bezier(0.25, 1, 0.5, 1),
 	            color 0.5s cubic-bezier(0.25, 1, 0.5, 1),
 	            border-color 0.5s cubic-bezier(0.25, 1, 0.5, 1),
-	            filter 0.6s cubic-bezier(0.25, 1, 0.5, 1),
 	            box-shadow 0.5s cubic-bezier(0.25, 1, 0.5, 1) !important;
 }
 
-/* 🎯 瀑布流第一层：最上方的整个头栏最先响应，0延迟爆发 */
-header, header * {
-	transition-delay: 0s !important;
-}
+header, header * { transition-delay: 0s !important; }
+main h1, main p, main a, main span { transition-delay: 0.06s !important; }
+main ul li { transition-delay: 0.12s !important; }
+footer, footer * { transition-delay: 0.18s !important; }
 
-/* 🎯 瀑布流第二层：中间正文的文字和大标题，稍慢 0.08 秒 */
-main h1, main p, main a, main span {
-	transition-delay: 0.08s !important;
-}
-
-/* 🎯 瀑布流第三层：正文下方的胶囊药丸条，在中期变色，延迟 0.16 秒 */
-main ul li {
-	transition-delay: 0.16s !important;
-}
-
-/* 🎯 瀑布流第四层：最底部的页脚大后方最后入夜，延迟 0.24 秒 */
-footer, footer * {
-	transition-delay: 0.24s !important;
-}
+html.dark header { background: rgba(15, 15, 20, 0.12) !important; border-color: rgba(255, 255, 255, 0.05) !important; }
+html.dark header a, html.dark header h2 a { color: #f5f5f7 !important; }
+html.dark main h1, html.dark main p { color: #f5f5f7 !important; }
+html.dark main p { color: #a1a1a6 !important; }
+html.dark main ul li { background: rgba(20, 20, 25, 0.15) !important; border-color: rgba(255, 255, 255, 0.05) !important; }
+html.dark main ul li b { color: #f5f5f7 !important; }
+html.dark main ul li span { color: #a1a1a6 !important; }
+html.dark footer { color: #a1a1a6 !important; border-color: rgba(255, 255, 255, 0.05) !important; }
+html.dark footer a { color: #a1a1a6 !important; }
 
 /* ==========================================
-   🌓 2. 手动控光精准选择器（干掉全局覆盖，实现差速流淌）
+   🎮 实时渲染画布图层锁死
    ========================================== */
-html.dark body::before {
-	filter: brightness(0.6) blur(30px) saturate(160%);
+#fluid-canvas {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw !important;
+	height: 100vh !important;
+	z-index: -2; /* 沉入最底层 */
+	pointer-events: none; /* 穿透点击，绝不卡死按钮 */
 }
 
-/* 头栏手动入夜 */
-html.dark header {
-	background: rgba(15, 15, 20, 0.15) !important;
-	border-color: rgba(255, 255, 255, 0.06) !important;
-}
-html.dark header a, html.dark header h2 a {
-	color: #f5f5f7 !important;
-}
-
-/* 正文文案手动入夜 */
-html.dark main h1, html.dark main p {
-	color: #f5f5f7 !important;
-}
-html.dark main p {
-	color: #86868b !important;
-}
-
-/* 首页那5个全圆药丸长条手动入夜 */
-html.dark main ul li {
-	background: rgba(20, 20, 25, 0.2) !important; 
-	border-color: rgba(255, 255, 255, 0.06) !important;
-	box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2) !important;
-}
-html.dark main ul li b {
-	color: #f5f5f7 !important;
-}
-html.dark main ul li span {
-	color: #86868b !important;
-}
-
-/* 底栏手动入夜 */
-html.dark footer {
-	color: #86868b !important;
-	border-color: rgba(255, 255, 255, 0.06) !important;
-}
-html.dark footer a {
-	color: #86868b !important;
-}
-
-/* ==========================================
-   iOS 控制中心同款极光壁纸
-   ========================================== */
 body {
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 	margin: 0;
 	padding: 0;
 	min-height: 100vh;
 	color: var(--text-main);
-	background-color: #000;
+	background-color: transparent; /* 放出底层的实时渲染 Canvas */
 	position: relative;
 	overflow-x: hidden !important; 
-}
-
-body::before {
-	content: '';
-	position: fixed;
-	top: 0;
-	left: 0;
-	width: 100% !important;  
-	height: 100% !important;
-	background-image: url('https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?q=80&w=1920&auto=format&fit=crop');
-	background-size: cover;
-	background-position: center;
-	filter: var(--bg-filter);
-	z-index: -1;
 }
 
 /* ==========================================
    🎯 头栏极致对齐与链接高级淡入淡出
    ========================================== */
 header {
-	background: rgba(255, 255, 255, 0.12);
-	backdrop-filter: blur(25px) saturate(200%) !important;
-	-webkit-backdrop-filter: blur(25px) saturate(200%) !important;
+	background: rgba(255, 255, 255, 0.1);
+	backdrop-filter: blur(30px) saturate(210%) !important; /* 增强毛玻璃的折射滤镜 */
+	-webkit-backdrop-filter: blur(30px) saturate(210%) !important;
 	border-bottom: 1px solid var(--card-border);
 	padding: 0.8rem 2rem !important; 
 	position: sticky;
@@ -146,69 +97,25 @@ header {
 	z-index: 100;
 }
 
-header nav {
-	display: flex;
-	align-items: center; 
-	justify-content: space-between;
-	max-width: 960px;
-	margin: 0 auto;
-	height: auto !important; 
-}
-
-header h2 {
-	margin: 0 !important;
-	padding: 0 !important;
-	font-size: 1.4rem !important;
-	line-height: 1 !important; 
-	display: flex;
-	align-items: center;
-}
-
-header a, header h2 a {
-	color: var(--text-main);
-	text-decoration: none !important;
-	font-weight: 600;
-	opacity: 0.85;
-}
-
-/* 鼠标悬浮链接：0.2秒高级果味淡入淡出 */
-header a:hover, html.dark header a:hover { 
-	color: var(--accent) !important; 
-	opacity: 1 !important;
-}
-
-header .internal-links, header .social-links {
-	display: flex;
-	gap: 1.5rem;
-	align-items: center;
-}
-.right-menu {
-	display: flex;
-	align-items: center;
-	gap: 1.5rem;
-}
+header nav { display: flex; align-items: center; justify-content: space-between; max-width: 960px; margin: 0 auto; height: auto !important; }
+header h2 { margin: 0 !important; padding: 0 !important; font-size: 1.4rem !important; line-height: 1 !important; display: flex; align-items: center; }
+header a, header h2 a { color: var(--text-main); text-decoration: none !important; font-weight: 600; opacity: 0.85; }
+header a:hover, html.dark header a:hover { color: var(--accent) !important; opacity: 1 !important; }
+header .internal-links, header .social-links { display: flex; gap: 1.5rem; align-items: center; }
+.right-menu { display: flex; align-items: center; gap: 1.5rem; }
 
 /* ==========================================
    🎯 正文与长条胶囊
    ========================================== */
-main {
-	width: 100%;
-	max-width: 820px;
-	margin: 0 auto;
-	padding: 3rem 1.5rem;
-	box-sizing: border-box;
-}
+main { width: 100%; max-width: 820px; margin: 0 auto; padding: 3rem 1.5rem; box-sizing: border-box; }
+main ul { padding: 0 !important; margin: 2rem 0 !important; }
 
-main ul {
-	padding: 0 !important; 
-	margin: 2rem 0 !important;
-}
-
+/* 首页横条：液态玻璃全圆胶囊 💊 */
 main ul li {
 	list-style: none !important;
 	background: var(--card-bg);
-	backdrop-filter: blur(15px) !important;
-	-webkit-backdrop-filter: blur(15px) !important;
+	backdrop-filter: blur(20px) saturate(180%) !important;
+	-webkit-backdrop-filter: blur(20px) saturate(180%) !important;
 	border: 1px solid var(--card-border);
 	box-shadow: var(--card-shadow);
 	border-radius: 9999px !important; 
@@ -216,29 +123,14 @@ main ul li {
 	margin-bottom: 1.2rem !important;
 	word-break: break-all; 
 }
+main ul li:hover { transform: scale(1.015) !important; background: rgba(255, 255, 255, 0.25) !important; }
+html.dark main ul li:hover { background: rgba(255, 255, 255, 0.08) !important; }
 
-/* 独立挂载鼠标悬浮卡片的放大与高亮，不和瀑布流冲突 */
-main ul li:hover {
-	transform: scale(1.015) !important;
-	background: rgba(255, 255, 255, 0.35) !important;
-}
-html.dark main ul li:hover {
-	background: rgba(255, 255, 255, 0.12) !important;
-}
-
-main section ul li, article, .prose {
-	border-radius: 24px !important; 
-}
-
-code {
-	background: rgba(255, 255, 255, 0.15);
-	padding: 0.2rem 0.6rem;
-	border-radius: 9999px;
-	font-size: 0.9em;
-}
+main section ul li, article, .prose { border-radius: 24px !important; }
+code { background: rgba(255, 255, 255, 0.15); padding: 0.2rem 0.6rem; border-radius: 9999px; font-size: 0.9em; }
 
 #theme-toggle {
-	background: rgba(255, 255, 255, 0.15);
+	background: rgba(255, 255, 255, 0.12);
 	border: 1px solid rgba(255, 255, 255, 0.2);
 	padding: 0.5rem;
 	border-radius: 9999px;
@@ -250,33 +142,16 @@ code {
 	width: 34px;
 	height: 34px;
 }
-#theme-toggle:hover {
-	transform: scale(1.05) !important;
-}
+#theme-toggle:hover { transform: scale(1.05) !important; }
 .sun { display: none; width: 16px; height: 16px; }
 .moon { display: block; width: 16px; height: 16px; }
 
-footer {
-	color: var(--text-muted);
-	border-top: 1px solid var(--card-border);
-	text-align: center;
-	padding: 3rem 1.5rem;
-	margin-top: 5rem;
-}
+footer { color: var(--text-muted); border-top: 1px solid var(--card-border); text-align: center; padding: 3rem 1.5rem; margin-top: 5rem; }
 
 /* ==========================================
-   🍏 专属图片比例物理纠偏
+   🍏 专属图片比例纠偏
    ========================================== */
-.hero-image img, .article-hero-img, main img {
-	width: auto !important;             
-	max-width: 100% !important;         
-	height: auto !important;            
-	max-height: 400px !important;       
-	object-fit: contain !important;     
-	margin: 0 auto !important;          
-	border-radius: 24px !important;     
-	display: block !important;
-}
+.hero-image img, .article-hero-img, main img { width: auto !important; max-width: 100% !important; height: auto !important; max-height: 400px !important; object-fit: contain !important; margin: 0 auto !important; border-radius: 24px !important; display: block !important; }
 
 /* ==========================================
    🚨 移动端/手机端像素级防乱
