@@ -14,10 +14,11 @@ import { SITE_TITLE } from '../consts';
 		</div>
 		
 		<div class="right-menu">
-			<div class="lang-group">
-				<button class="lang-btn" data-lang="zh-CN">简</button>
-				<button class="lang-btn" data-lang="zh-TW">繁</button>
-				<button class="lang-btn" data-lang="en">EN</button>
+			<div class="drag-lang-container" id="drag-track">
+				<div class="drag-label" data-idx="0">简</div>
+				<div class="drag-label" data-idx="1">繁</div>
+				<div class="drag-label" data-idx="2">EN</div>
+				<div class="drag-handle" id="drag-handle"></div>
 			</div>
 
 			<button id="theme-toggle" aria-label="Toggle theme">
@@ -49,52 +50,105 @@ import { SITE_TITLE } from '../consts';
 	};
 	document.getElementById("theme-toggle")?.addEventListener("click", handleToggleClick);
 
-	// 2. 核心多语言局部无损翻译字典
+	// 2. 多语言字典定义
 	const langDict = {
 		'zh-CN': { home: '首页', blog: '博客', about: '关于' },
 		'zh-TW': { home: '首頁', blog: '網誌', about: '關於' },
 		'en': { home: 'Home', blog: 'Blog', about: 'About' }
 	};
+	const langOrder = ['zh-CN', 'zh-TW', 'en'];
 
-	const applyLanguage = (lang) => {
-		// 切换按钮的高亮状态
-		document.querySelectorAll('.lang-btn').forEach(btn => {
-			if(btn.getAttribute('data-lang') === lang) {
-				btn.classList.add('active');
-			} else {
-				btn.classList.remove('active');
-			}
-		});
-		
-		// 物理更改本地标签文字
+	// 3. 拖拽核心物理引擎
+	const track = document.getElementById('drag-track');
+	const handle = document.getElementById('drag-handle');
+	let isDragging = false;
+	let startX = 0;
+	let handleLeft = 0;
+	const stepWidth = 38; // 每一个语言档位的物理像素间距（对齐下方CSS）
+
+	const updateTexts = (lang) => {
 		const data = langDict[lang] || langDict['zh-CN'];
-		const homeBtn = document.getElementById('lang-home');
-		const blogBtn = document.getElementById('lang-blog');
-		const aboutBtn = document.getElementById('lang-about');
-		
-		if(homeBtn) homeBtn.innerText = data.home;
-		if(blogBtn) blogBtn.innerText = data.blog;
-		if(aboutBtn) aboutBtn.innerText = data.about;
-		
-		// 并在 html 节点上打上标记，方便其他页面组件识别
+		['lang-home', 'lang-blog', 'lang-about'].forEach((id, i) => {
+			const el = document.getElementById(id);
+			if (el) el.innerText = Object.values(data)[i];
+		});
 		document.documentElement.setAttribute('lang', lang);
 		localStorage.setItem('site-lang', lang);
-		
-		// 派发全局事件，通知首页和关于页同步更新文字
 		window.dispatchEvent(new CustomEvent('lang-changed', { detail: lang }));
 	};
 
-	// 绑定多语言按钮点击事件
-	document.querySelectorAll('.lang-btn').forEach(btn => {
-		btn.addEventListener('click', () => {
-			const targetLang = btn.getAttribute('data-lang');
-			applyLanguage(targetLang);
+	// 物理定位滑块位置 (带丝滑果味吸附过渡)
+	const snapToLang = (lang, useAnimation = true) => {
+		const idx = langOrder.indexOf(lang);
+		if (idx === -1) return;
+		
+		if (useAnimation) handle.style.transition = 'transform 0.25s cubic-bezier(0.25, 1, 0.5, 1)';
+		else handle.style.transition = 'none';
+		
+		// 精密物理平移量计算
+		handle.style.transform = `translateX(${idx * stepWidth}px)`;
+		
+		// 同步高亮轨道文字
+		document.querySelectorAll('.drag-label').forEach((lbl, i) => {
+			if(i === idx) lbl.classList.add('active');
+			else lbl.classList.remove('active');
+		});
+	};
+
+	// 双端原生 Pointer 事件（同时完美兼容电脑鼠标与手机触屏）
+	handle.addEventListener('pointerdown', (e) => {
+		isDragging = true;
+		handle.setPointerCapture(e.pointerId);
+		startX = e.clientX;
+		// 抓取当前滑块已经偏移的物理矩阵值
+		const style = window.getComputedStyle(handle);
+		const matrix = new WebKitCSSMatrix(style.transform);
+		handleLeft = matrix.m41; 
+		handle.style.transition = 'none'; // 拖拽时物理断开延迟动画
+	});
+
+	window.addEventListener('pointermove', (e) => {
+		if (!isDragging) return;
+		const deltaX = e.clientX - startX;
+		let newLeft = handleLeft + deltaX;
+		
+		// 边界死锁：严禁滑块脱轨跑偏 (0px 到 76px 之间)
+		if (newLeft < 0) newLeft = 0;
+		if (newLeft > stepWidth * 2) newLeft = stepWidth * 2;
+		
+		handle.style.transform = `translateX(${newLeft}px)`;
+	});
+
+	window.addEventListener('pointerup', (e) => {
+		if (!isDragging) return;
+		isDragging = false;
+		
+		// 松手刹那：精密锁算离哪个档位最近，触发物理自动吸附 (Snap)
+		const currentMatrix = new WebKitCSSMatrix(window.getComputedStyle(handle));
+		const currentLeft = currentMatrix.m41;
+		const closestIdx = Math.round(currentLeft / stepWidth);
+		
+		const targetLang = langOrder[closestIdx];
+		snapToLang(targetLang);
+		updateTexts(targetLang);
+	});
+
+	// 点击轨道任意位置也能直接滑过去
+	document.querySelectorAll('.drag-label').forEach(lbl => {
+		lbl.addEventListener('click', () => {
+			const idx = parseInt(lbl.getAttribute('data-idx'));
+			const targetLang = langOrder[idx];
+			snapToLang(targetLang);
+			updateTexts(targetLang);
 		});
 	});
 
-	// 加载时自动初始化语言记忆锁
-	const savedLang = localStorage.getItem('site-lang') || 'zh-CN';
-	applyLanguage(savedLang);
+	// 初始化语言记忆状态 (首刷不走动画)
+	const initialLang = localStorage.getItem('site-lang') || 'zh-CN';
+	setTimeout(() => {
+		snapToLang(initialLang, false);
+		updateTexts(initialLang);
+	}, 50);
 </script>
 
 <style>
@@ -106,37 +160,65 @@ import { SITE_TITLE } from '../consts';
 	.social-links a { display: flex; align-items: center; color: inherit; opacity: 0.7; }
 	.social-links a:hover { opacity: 1; }
 
-	/* 🌐 极简高通透语言按钮药丸组 */
-	.lang-group {
+	/* 🎚️ 极客图层：高通透物理拖拽密封舱轨道 */
+	.drag-lang-container {
+		position: relative;
 		display: flex;
-		background: rgba(255, 255, 255, 0.1);
+		background: rgba(255, 255, 255, 0.08);
 		border: 1px solid rgba(255, 255, 255, 0.15);
 		padding: 2px;
 		border-radius: 9999px;
+		width: 114px; /* 38px * 3 精确锁死总宽 */
+		height: 28px;
+		box-sizing: border-box;
+		user-select: none;
+		touch-action: none; /* 强制拦截手机浏览器默认滑动手势，交给引擎 */
 	}
-	.lang-btn {
-		background: transparent;
-		border: none;
-		color: inherit;
-		font-size: 0.75rem;
-		font-weight: 600;
-		padding: 0.3rem 0.6rem;
-		border-radius: 9999px;
+	:global(html.dark) .drag-lang-container {
+		background: rgba(0, 0, 0, 0.2);
+		border-color: rgba(255, 255, 255, 0.06);
+	}
+	
+	.drag-label {
+		width: 38px;
+		height: 100%;
+		font-size: 0.7rem;
+		font-weight: 700;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 		cursor: pointer;
-		opacity: 0.5;
-		transition: all 0.2s ease;
+		color: inherit;
+		opacity: 0.4;
+		z-index: 2;
+		transition: opacity 0.2s ease;
 	}
-	.lang-btn:hover {
-		opacity: 0.8;
-	}
-	/* 激活状态下的高透小药丸 */
-	.lang-btn.active {
-		background: rgba(255, 255, 255, 0.25);
+	.drag-label.active {
 		opacity: 1;
-		box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 	}
-	:global(html.dark) .lang-btn.active {
+
+	/* 💊 悬浮液态玻璃物理滑块（支持拖拽） */
+	.drag-handle {
+		position: absolute;
+		top: 2px;
+		left: 2px;
+		width: 34px; /* 完美贴合内壁 */
+		height: 22px;
+		background: rgba(255, 255, 255, 0.25);
+		border: 1px solid rgba(255, 255, 255, 0.2);
+		border-radius: 9999px;
+		box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+		cursor: grab;
+		z-index: 1;
+		touch-action: none;
+	}
+	.drag-handle:active {
+		cursor: grabbing;
+		background: rgba(255, 255, 255, 0.35);
+	}
+	:global(html.dark) .drag-handle {
 		background: rgba(255, 255, 255, 0.12);
+		border-color: rgba(255, 255, 255, 0.1);
 	}
 
 	#theme-toggle {
@@ -149,15 +231,13 @@ import { SITE_TITLE } from '../consts';
 		align-items: center;
 		justify-content: center;
 		color: inherit;
-		width: 36px;
-		height: 36px;
+		width: 34px;
+		height: 34px;
 	}
-	.sun { display: none; width: 18px; height: 18px; }
-	.moon { display: block; width: 18px; height: 18px; }
+	.sun { display: none; width: 16px; height: 16px; }
+	.moon { display: block; width: 16px; height: 16px; }
 	@media (max-width: 720px) {
 		.right-menu { gap: 0.8rem; }
 		.social-links { gap: 0.8rem; }
-		.lang-group { padding: 1px; }
-		.lang-btn { padding: 0.2rem 0.4rem; font-size: 0.7rem; }
 	}
 </style>
