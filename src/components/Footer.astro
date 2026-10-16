@@ -1,10 +1,15 @@
 ---
+import LinkIcon from "./LinkIcon.astro";
 const year = new Date().getFullYear();
 ---
 
 <footer>
   <span>© {year} mcxiaoshan</span>
-  <a href="/rss.xml">RSS ↗</a>
+  <a href="/rss.xml">
+    <LinkIcon name="rss" />
+    <span>RSS</span>
+    <span aria-hidden="true">↗</span>
+  </a>
   <span class="site-note">随心记录，自由生长。</span>
 </footer>
 <script is:inline>
@@ -45,6 +50,9 @@ const year = new Date().getFullYear();
     color: var(--text-muted);
   }
   footer a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     text-decoration: none;
   }
   .site-note {

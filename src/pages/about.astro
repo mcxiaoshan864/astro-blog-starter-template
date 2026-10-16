@@ -1,4 +1,5 @@
 ---
+import LinkIcon from "../components/LinkIcon.astro";
 import BaseHead from "../components/BaseHead.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
@@ -93,7 +94,9 @@ import { SITE_TITLE } from "../consts";
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Bilibili ↗
+                <LinkIcon name="bilibili" />
+                <span>Bilibili</span>
+                <span aria-hidden="true">↗</span>
               </a>
               <a
                 class="glass-control button"
@@ -101,7 +104,9 @@ import { SITE_TITLE } from "../consts";
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                X ↗
+                <LinkIcon name="x" />
+                <span>X</span>
+                <span aria-hidden="true">↗</span>
               </a>
               <a
                 class="glass-control button"
@@ -109,7 +114,9 @@ import { SITE_TITLE } from "../consts";
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                GitHub ↗
+                <LinkIcon name="github" />
+                <span>GitHub</span>
+                <span aria-hidden="true">↗</span>
               </a>
             </div>
           </div>
@@ -167,6 +174,7 @@ import { SITE_TITLE } from "../consts";
     margin-top: 25px;
   }
   .contact-links .button {
+    gap: 9px;
     font-size: 0.75rem;
     min-height: 44px;
     padding: 10px 22px;
