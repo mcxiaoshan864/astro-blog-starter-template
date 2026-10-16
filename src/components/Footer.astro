@@ -1,36 +1,105 @@
 ---
-const today = new Date();
+const year = new Date().getFullYear();
 ---
 
 <footer>
-	&copy; {today.getFullYear()} mcxiaoshan. 保留所有权利。
-	<div class="footer-links">
-		<a href="/">大本营首页</a>
-		<a href="/blog">赛博日志</a>
-		<a href="/about">关于本站</a>
-	</div>
+  <div class="footer-top">
+    <a class="footer-brand" href="/">
+      mcxiaoshan <span>✦</span>
+    </a>
+    <p>保持好奇，继续折腾。</p>
+    <div class="socials">
+      <a
+        href="https://space.bilibili.com/3493093791763273"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Bilibili ↗
+      </a>
+      <a
+        href="https://x.com/MXiaoshan68280"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        X ↗
+      </a>
+      <a
+        href="https://github.com/mcxiaoshan864/astro-blog-starter-template"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        GitHub ↗
+      </a>
+      <a href="/rss.xml">RSS ↗</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© {year} mcxiaoshan</span>
+    <span>Built with Astro · Served by Cloudflare</span>
+  </div>
 </footer>
-
 <style>
-	footer {
-		padding: 3rem 1.5rem;
-		text-align: center;
-		/* 继承 global.css 的文字颜色变量 */
-		color: var(--text-muted);
-		font-size: 0.95rem;
-	}
-	.footer-links {
-		display: flex;
-		justify-content: center;
-		gap: 1.5rem;
-		margin-top: 1rem;
-	}
-	.footer-links a {
-		text-decoration: none;
-		color: var(--text-muted);
-		transition: color 0.2s ease;
-	}
-	.footer-links a:hover {
-		color: var(--accent); /* 鼠标悬浮时亮起苹果蓝 */
-	}
+  footer {
+    width: min(1120px, calc(100% - 64px));
+    margin: auto;
+    padding: 30px 0 24px;
+    border-top: 1px solid var(--line);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+  .footer-top {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+  .footer-brand {
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--text-main);
+    text-decoration: none;
+  }
+  .footer-brand span {
+    color: var(--accent);
+  }
+  p {
+    margin: 0;
+  }
+  .socials {
+    margin-left: auto;
+    display: flex;
+    gap: 20px;
+  }
+  .socials a {
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+  .socials a:hover {
+    color: var(--accent);
+  }
+  .footer-bottom {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    font-size: 0.7rem;
+    opacity: 0.8;
+    margin-top: 28px;
+  }
+  @media (max-width: 700px) {
+    footer {
+      width: calc(100% - 32px);
+    }
+    .footer-top {
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .socials {
+      width: 100%;
+      margin: 8px 0;
+    }
+    .footer-bottom {
+      flex-direction: column;
+      gap: 5px;
+    }
+  }
 </style>

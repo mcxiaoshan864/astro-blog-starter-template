@@ -1,177 +1,509 @@
 ---
-import BaseHead from '../components/BaseHead.astro';
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
-import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+import BaseHead from "../components/BaseHead.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import PostCard from "../components/PostCard.astro";
+import { SITE_TITLE, SITE_DESCRIPTION } from "../consts";
+import { getCollection } from "astro:content";
+const posts = (await getCollection("blog")).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
 ---
 
 <!doctype html>
 <html lang="zh-CN">
-	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
-	</head>
-	<body>
-		<canvas id="fluid-canvas"></canvas>
-
-		<Header />
-		<main>
-			<h1 id="idx-welcome">🧑‍🚀 欢迎来到赛博控制台！</h1>
-			<p id="idx-p1">
-				这里是由 <a href="https://astro.build/">Astro</a> 驱动的纯静态、超满血、100%绝对合规的极客大本营。
-			</p>
-			<p id="idx-p2">
-				目前全站已通过 Cloudflare 边缘计算网络全球安全上岸，底子清白，大后方稳如老狗！
-			</p>
-			<p id="idx-p3">以下是你可以继续探索和改动的大本营核心枢纽：</p>
-			
-			<ul>
-				<li>
-					<span id="idx-li1"><b>修改当前首页：</b> 编辑 <code>src/pages/index.astro</code> 文件</span>
-				</li>
-				<li>
-					<span id="idx-li2"><b>调整上方导航栏：</b> 编辑 <code>src/components/Header.astro</code> 文件</span>
-				</li>
-				<li>
-					<span id="idx-li3"><b>修改页脚版权信息：</b> 编辑 <code>src/components/Footer.astro</code> 文件</span>
-				</li>
-				<li>
-					<span id="idx-li4"><b>撰写你的新博客/日志：</b> 将 Markdown 文章丢进 <code>src/content/blog/</code> 文件夹</span>
-				</li>
-				<li>
-					<span id="idx-li5"><b>自定义文章展示样式：</b> 编辑 <code>src/layouts/BlogPost.astro</code> 文件</span>
-				</li>
-			</ul>
-
-			<p style="margin-top: 2.5rem;" id="idx-p4">
-				祝你折腾得开心！如果有任何新想法，随时呼叫你的赛博副驾驶，我们继续搞定一切！
-			</p>
-		</main>
-		<Footer />
-
-		<script is:inline>
-			// 1. 多语言核心字典
-			const indexDict = {
-				'zh-CN': {
-					welcome: '🧑‍🚀 欢迎来到赛博控制台！',
-					p1: '这里是由 Astro 驱动的纯静态、超满血、100%绝对合规的极客大本营。',
-					p2: '目前全站已通过 Cloudflare 边缘计算网络全球安全上岸，底子清白，大后方稳如老狗！',
-					p3: '以下是你可以继续探索和改动的大本营核心枢纽：',
-					li1: '修改当前首页： 编辑 src/pages/index.astro 文件',
-					li2: '调整上方导航栏： 编辑 src/components/Header.astro 文件',
-					li3: '修改页脚版權信息： 编辑 src/components/Footer.astro 文件',
-					li4: '撰写你的新博客/日志： 将 Markdown 文章丢进 src/content/blog/ 文件夹',
-					li5: '自定义文章展示样式： 编辑 src/layouts/BlogPost.astro 文件',
-					p4: '祝你折腾得开心！如果有任何新想法，随时呼叫你的赛博副驾驶，我们继续搞定一切！'
-				},
-				'zh-TW': {
-					welcome: '🧑‍🚀 歡迎來到賽博控制台！',
-					p1: '這裡是由 Astro 驅動的純靜態、超滿血、100%絕對合規的極客大本營。',
-					p2: '目前全站已通過 Cloudflare 邊緣計算網絡全球安全上岸，底子清白，大後方穩如老狗！',
-					p3: '以下是你可以繼續探索和改動的大本營核心樞紐：',
-					li1: '修改當前首頁： 編輯 src/pages/index.astro 文件',
-					li2: '調整上方導航欄： 編輯 src/components/Header.astro 文件',
-					li3: '修改頁腳版權信息： 編輯 src/components/Footer.astro 文件',
-					li4: '撰寫你的新網誌/日誌： 將 Markdown 文章丟進 src/content/blog/ 文件夾',
-					li5: '自定義文章展示樣式： 編輯 src/layouts/BlogPost.astro 文件',
-					p4: '祝意折騰得開心！如果有任何新想法，隨時呼叫你的賽博副駕駛，我們繼續搞定一切！'
-				},
-				'en': {
-					welcome: "🧑‍🚀 Welcome to Cyber Console!",
-					p1: "This is a pure static, fully-loaded, and 100% compliant geek base powered by Astro.",
-					p2: "The entire site is now securely deployed globally via Cloudflare Edge Network. Clear background, rock solid!",
-					p3: "Here are the core hubs of the base you can continue to explore and modify:",
-					li1: 'Modify current homepage: Edit src/pages/index.astro',
-					li2: 'Adjust top navigation bar: Edit src/components/Header.astro',
-					li3: 'Modify footer copyright: Edit src/components/Footer.astro',
-					li4: 'Write your new blog/log: Drop Markdown posts into src/content/blog/',
-					li5: 'Customize post display style: Edit src/layouts/BlogPost.astro',
-					p4: 'Happy tweaking! If you have any new ideas, call your cyber co-pilot anytime. Let’s build it!'
-				}
-			};
-
-			const updateIndexLang = (lang) => {
-				const data = indexDict[lang] || indexDict['zh-CN'];
-				document.getElementById('idx-welcome').innerText = data.welcome;
-				document.getElementById('idx-p1').innerHTML = data.p1;
-				document.getElementById('idx-p2').innerText = data.p2;
-				document.getElementById('idx-p3').innerText = data.p3;
-				document.getElementById('idx-li1').innerHTML = data.li1;
-				document.getElementById('idx-li2').innerHTML = data.li2;
-				document.getElementById('idx-li3').innerHTML = data.li3;
-				document.getElementById('idx-li4').innerHTML = data.li4;
-				document.getElementById('idx-li5').innerHTML = data.li5;
-				document.getElementById('idx-p4').innerText = data.p4;
-			};
-			window.addEventListener('lang-changed', (e) => updateIndexLang(e.detail));
-			updateIndexLang(localStorage.getItem('site-lang') || 'zh-CN');
-
-			// 2. 🦾 极客专属：Canvas 2D 仿 WebGL 极速流光演算着色引擎
-			const canvas = document.getElementById('fluid-canvas');
-			const ctx = canvas.getContext('2d');
-			let pointer = { x: 0, y: 0, targetX: 0, targetY: 0 };
-			let tick = 0;
-
-			const resize = () => {
-				canvas.width = window.innerWidth;
-				canvas.height = window.innerHeight;
-			};
-			window.addEventListener('resize', resize);
-			resize();
-
-			// 抓取鼠标/触屏指针轨迹，注入流体扰动
-			window.addEventListener('pointermove', (e) => {
-				pointer.targetX = e.clientX;
-				pointer.targetY = e.clientY;
-			});
-
-			// 帧循环：疯狂向显卡输出正弦/余弦交织的液态流光矩阵
-			const render = () => {
-				tick += 0.003; // 流动速度阻尼
-				
-				// 逼近鼠标
-				pointer.x += (pointer.targetX - pointer.x) * 0.05;
-				pointer.y += (pointer.targetY - pointer.y) * 0.05;
-
-				const w = canvas.width;
-				const h = canvas.height;
-				
-				// 物理绘制彩色液态流体渐变
-				const grad = ctx.createLinearGradient(
-					w * 0.5 + Math.sin(tick) * w * 0.3, 
-					0, 
-					w * 0.5 + Math.cos(tick * 1.2) * w * 0.4, 
-					h
-				);
-
-				// 响应明暗系统的色彩方案
-				const isDark = document.documentElement.classList.contains('dark');
-				if (isDark) {
-					// 深色太空流光
-					grad.addColorStop(0, `hsla(${210 + Math.sin(tick) * 30}, 75%, 15%, 1)`);
-					grad.addColorStop(0.5, `hsla(${260 + Math.cos(tick) * 40}, 70%, 12%, 1)`);
-					grad.addColorStop(1, `hsla(${190 + Math.sin(tick * 0.8) * 20}, 80%, 10%, 1)`);
-				} else {
-					// 亮色高级流光
-					grad.addColorStop(0, `hsla(${215 + Math.sin(tick) * 20}, 90%, 65%, 1)`);
-					grad.addColorStop(0.5, `hsla(${250 + Math.cos(tick) * 30}, 85%, 75%, 1)`);
-					grad.addColorStop(1, `hsla(${195 + Math.sin(tick * 0.5) * 25}, 90%, 70%, 1)`);
-				}
-
-				ctx.fillStyle = grad;
-				ctx.fillRect(0, 0, w, h);
-
-				// 注入鼠标周围的液态高光磁吸晕染
-				if(pointer.x !== 0 && pointer.y !== 0) {
-					const mouseGrad = ctx.createRadialGradient(pointer.x, pointer.y, 10, pointer.x, pointer.y, w * 0.4);
-					mouseGrad.addColorStop(0, isDark ? 'rgba(41, 151, 255, 0.15)' : 'rgba(255, 255, 255, 0.4)');
-					mouseGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-					ctx.fillStyle = mouseGrad;
-					ctx.fillRect(0, 0, w, h);
-				}
-
-				requestAnimationFrame(render);
-			};
-			render();
-		</script>
-	</body>
+  <head>
+    <BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+  </head>
+  <body>
+    <Header />
+    <main id="main">
+      <section class="hero glass">
+        <div class="hero-copy">
+          <div class="eyebrow">Welcome to my little corner</div>
+          <h1>
+            <span data-i18n="hello">你好，这里是</span>
+            <br />
+            <span class="name">
+              mcxiaoshan<span class="period">.</span>
+            </span>
+          </h1>
+          <p class="hero-description" data-i18n="intro">
+            在数字世界里，留下一点自己的痕迹。
+            <br />
+            记录硬件、系统，以及每一次好奇心带来的折腾。
+          </p>
+          <div class="hero-actions">
+            <a href="/blog/" class="button primary">
+              <span data-i18n="read">翻开我的日志</span>
+              <span aria-hidden="true">↗</span>
+            </a>
+            <a href="/about/" class="button" data-i18n="about">
+              认识一下我
+            </a>
+          </div>
+          <div class="hero-note">
+            <span></span>
+            <span data-i18n="note">保持好奇 · 慢慢更新</span>
+          </div>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <div class="orbit orbit-one"></div>
+          <div class="orbit orbit-two"></div>
+          <div class="orb">
+            <span>
+              m<span class="spark">✦</span>
+            </span>
+          </div>
+          <span class="floating-label label-one">⌘ &nbsp; Stay curious</span>
+          <span class="floating-label label-two">✧ &nbsp; Keep exploring</span>
+          <span class="art-caption">A LITTLE SPACE FOR BIG IDEAS</span>
+        </div>
+      </section>
+      <div class="interest-strip">
+        <span class="strip-label" data-i18n="interests">
+          好奇心的方向
+        </span>
+        <span>硬件探索</span>
+        <span>Android / ROM</span>
+        <span>Windows</span>
+        <span>生活碎片</span>
+        <span class="strip-star">✦</span>
+      </div>
+      <section aria-labelledby="latest">
+        <div class="section-heading">
+          <div>
+            <div class="eyebrow">The journal</div>
+            <h2 id="latest" data-i18n="latest">
+              最近的折腾
+            </h2>
+          </div>
+          <a href="/blog/" data-i18n="all">
+            所有日志 ↗
+          </a>
+        </div>
+        <div class="home-posts">
+          <div class="post-list">
+            {posts.slice(0, 2).map((post) => (
+              <PostCard post={post} />
+            ))}
+          </div>
+          <aside class="glass hello-card">
+            <span class="tiny-star">✳</span>
+            <h3 data-i18n="asideTitle">
+              不止是代码，
+              <br />
+              也是生活的存档。
+            </h3>
+            <p data-i18n="asideText">
+              有时是旧设备的新生，有时是一个问题的答案。把值得记住的过程，慢慢写在这里。
+            </p>
+            <a href="/about/" data-i18n="more">
+              关于这个小站 ↗
+            </a>
+            <span class="card-number">01 / PERSONAL SPACE</span>
+          </aside>
+        </div>
+      </section>
+      <section class="closing glass">
+        <div>
+          <span class="eyebrow">Always a work in progress</span>
+          <h2 data-i18n="closing">世界很大，好奇心也是。</h2>
+        </div>
+        <a class="button" href="/rss.xml">
+          <span data-i18n="rss">订阅 RSS</span>
+          <span aria-hidden="true">↗</span>
+        </a>
+      </section>
+    </main>
+    <Footer />
+    <script is:inline>
+      (() => {
+        const copy = {
+          "zh-TW": {
+            hello: "你好，這裡是",
+            intro:
+              "在數位世界裡，留下一點自己的痕跡。\n記錄硬體、系統，以及每一次好奇心帶來的折騰。",
+            read: "翻開我的日誌",
+            about: "認識一下我",
+            note: "保持好奇 · 慢慢更新",
+            interests: "好奇心的方向",
+            latest: "最近的折騰",
+            all: "所有日誌 ↗",
+            asideTitle: "不只是程式碼，\n也是生活的存檔。",
+            asideText:
+              "有時是舊設備的新生，有時是一個問題的答案。把值得記住的過程，慢慢寫在這裡。",
+            more: "關於這個小站 ↗",
+            closing: "世界很大，好奇心也是。",
+            rss: "訂閱 RSS",
+          },
+          en: {
+            hello: "Hello, this is",
+            intro:
+              "A little trace of me in the digital world.\nHardware, systems, and adventures sparked by curiosity.",
+            read: "Explore the journal",
+            about: "A little about me",
+            note: "Stay curious · Keep creating",
+            interests: "Things I explore",
+            latest: "Latest explorations",
+            all: "All entries ↗",
+            asideTitle: "More than code.\nA journal of life.",
+            asideText:
+              "Sometimes an old device gets a new life. Sometimes a question finds its answer. This is where I keep the journey.",
+            more: "About this corner ↗",
+            closing: "A big world. An even bigger curiosity.",
+            rss: "Subscribe via RSS",
+          },
+        };
+        const nodes = [...document.querySelectorAll("[data-i18n]")];
+        const original = nodes.map((el) => el.innerText);
+        const update = (lang) =>
+          nodes.forEach((el, i) => {
+            el.innerText = copy[lang]?.[el.dataset.i18n] || original[i];
+          });
+        window.addEventListener("lang-changed", (e) => update(e.detail));
+        try {
+          update(localStorage.getItem("site-lang"));
+        } catch {}
+      })();
+    </script>
+  </body>
 </html>
+<style>
+  .hero {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    min-height: 490px;
+    padding: 60px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(120deg, #ffffff55, transparent 50%, #ffffff10);
+  }
+  .hero-copy {
+    position: relative;
+    z-index: 1;
+  }
+  .hero h1 {
+    margin-bottom: 22px;
+    font-weight: 500;
+    line-height: 1.23;
+    font-size: clamp(2rem, 4.3vw, 3.8rem);
+  }
+  .name {
+    font-weight: 700;
+    letter-spacing: -0.055em;
+  }
+  .period {
+    color: #777ed5;
+  }
+  .hero-description {
+    font-size: 0.95rem;
+    line-height: 1.9;
+    color: var(--text-muted);
+    white-space: pre-line;
+  }
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 30px;
+  }
+  .hero-note {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-top: 36px;
+  }
+  .hero-note > span:first-child {
+    width: 5px;
+    height: 5px;
+    background: #63a991;
+    border-radius: 50%;
+  }
+  .hero-art {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-width: 0;
+  }
+  .orb {
+    position: relative;
+    width: 240px;
+    height: 260px;
+    border-radius: 43% 57% 61% 39% / 42% 40% 60% 58%;
+    background:
+      radial-gradient(at 27% 20%, #ffffffe6, transparent 43%),
+      radial-gradient(at 70% 80%, #7b8ad599, transparent 65%),
+      linear-gradient(130deg, #c6ddff99, #dfd8ffbb 50%, #b7ccfb99);
+    box-shadow:
+      inset 2px 4px 9px #fff,
+      inset -8px -10px 24px #778dc560,
+      16px 26px 44px -16px #7f83b466,
+      0 0 0 1px #fff9;
+    backdrop-filter: blur(4px);
+    transform: rotate(-15deg);
+    animation: morph 14s ease-in-out infinite alternate;
+    display: grid;
+    place-items: center;
+  }
+  .orb > span {
+    font-size: 120px;
+    font-weight: 700;
+    font-style: italic;
+    letter-spacing: -0.08em;
+    color: #ffffffb3;
+    text-shadow:
+      2px 3px 1px #7887be55,
+      -1px -1px 0 white;
+    position: relative;
+    transform: rotate(15deg);
+  }
+  .spark {
+    position: absolute;
+    top: 24px;
+    right: -27px;
+    font-size: 34px;
+    color: white;
+  }
+  .orbit {
+    position: absolute;
+    width: 360px;
+    height: 170px;
+    border: 1px solid var(--card-border);
+    border-radius: 50%;
+    transform: rotate(-32deg);
+    box-shadow: 0 1px 0 #7b88bc14;
+  }
+  .orbit-two {
+    width: 330px;
+    height: 330px;
+    transform: rotate(35deg);
+    opacity: 0.5;
+  }
+  .floating-label {
+    position: absolute;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    box-shadow: var(--card-shadow);
+    backdrop-filter: blur(20px);
+    padding: 10px 18px;
+    border-radius: 15px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+  .label-one {
+    top: 33px;
+    right: -10px;
+    transform: rotate(7deg);
+  }
+  .label-two {
+    bottom: 45px;
+    left: -12px;
+    transform: rotate(-7deg);
+  }
+  .art-caption {
+    position: absolute;
+    bottom: -10px;
+    font-size: 8px;
+    letter-spacing: 0.24em;
+    color: var(--text-muted);
+  }
+  .interest-strip {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 24px 10px;
+    border-bottom: 1px solid var(--line);
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    flex-wrap: wrap;
+  }
+  .strip-label {
+    margin-right: auto;
+    font-size: 0.7rem;
+  }
+  .strip-star {
+    color: var(--accent);
+    margin-left: auto;
+  }
+  .home-posts {
+    display: grid;
+    grid-template-columns: 1.65fr 1fr;
+    gap: 24px;
+  }
+  .home-posts .post-list {
+    grid-template-columns: 1fr;
+  }
+  .hello-card {
+    padding: 36px;
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+  }
+  .tiny-star {
+    font-size: 40px;
+    color: #858cce;
+    line-height: 1;
+    margin-bottom: 35px;
+  }
+  .hello-card h3 {
+    font-size: 1.5rem;
+    line-height: 1.5;
+    white-space: pre-line;
+  }
+  .hello-card p {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    line-height: 1.9;
+  }
+  .hello-card a {
+    font-size: 0.85rem;
+    text-decoration: none;
+    margin-top: 16px;
+  }
+  .card-number {
+    margin-top: auto;
+    padding-top: 32px;
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    color: var(--text-muted);
+  }
+  .closing {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 32px 40px;
+    margin-top: 40px;
+  }
+  .closing .eyebrow {
+    margin-bottom: 12px;
+    font-size: 0.6rem;
+  }
+  .closing h2 {
+    font-size: 1.45rem;
+    margin: 0;
+  }
+  .closing .button {
+    white-space: nowrap;
+  }
+  @keyframes morph {
+    to {
+      transform: rotate(-5deg) translateY(-10px);
+      border-radius: 56% 44% 40% 60% / 50% 60% 40% 50%;
+    }
+  }
+  @media (max-width: 900px) {
+    .hero {
+      padding: 36px;
+      grid-template-columns: 1.2fr 0.8fr;
+    }
+    .orb {
+      width: 180px;
+      height: 210px;
+    }
+    .orbit {
+      width: 240px;
+    }
+    .orbit-two {
+      width: 240px;
+      height: 260px;
+    }
+    .floating-label {
+      font-size: 0.65rem;
+      padding: 8px 12px;
+    }
+    .label-one {
+      right: -16px;
+    }
+    .label-two {
+      left: 0;
+    }
+    .home-posts {
+      grid-template-columns: 1.4fr 1fr;
+    }
+    .hello-card {
+      padding: 25px;
+    }
+  }
+  @media (max-width: 700px) {
+    .hero {
+      grid-template-columns: 1fr;
+      padding: 30px 24px 20px;
+    }
+    .hero h1 {
+      font-size: 2.4rem;
+    }
+    .hero-art {
+      height: 280px;
+      margin-top: 15px;
+    }
+    .orb {
+      width: 175px;
+      height: 195px;
+    }
+    .orb > span {
+      font-size: 100px;
+    }
+    .label-one {
+      top: 25px;
+      right: 5px;
+    }
+    .label-two {
+      bottom: 45px;
+      left: 0;
+    }
+    .art-caption {
+      bottom: 5px;
+    }
+    .orbit {
+      width: 270px;
+    }
+    .orbit-two {
+      width: 235px;
+      height: 235px;
+    }
+    .hero-note {
+      margin-top: 24px;
+    }
+    .hero .eyebrow {
+      font-size: 0.58rem;
+    }
+    .interest-strip {
+      gap: 10px 17px;
+      padding: 22px 4px;
+    }
+    .strip-label {
+      flex-basis: 100%;
+    }
+    .strip-star {
+      display: none;
+    }
+    .home-posts {
+      grid-template-columns: 1fr;
+    }
+    .hello-card {
+      padding: 28px;
+    }
+    .tiny-star {
+      margin-bottom: 20px;
+    }
+    .closing {
+      padding: 25px;
+      align-items: start;
+      flex-direction: column;
+    }
+    .closing h2 {
+      font-size: 1.25rem;
+    }
+  }
+</style>

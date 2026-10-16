@@ -1,196 +1,345 @@
-/* ==========================================
-   🍏 纯正苹果美学 - 无损液态玻璃与全圆药丸系统
-   ========================================== */
-
+@font-face {
+  font-family: Atkinson;
+  src: url("/fonts/atkinson-regular.woff") format("woff");
+  font-display: swap;
+}
 :root {
-	/* === 明亮模式（极透苹果乳白） === */
-	--bg-filter: brightness(1.05) blur(30px) saturate(190%);
-	--card-bg: rgba(255, 255, 255, 0.18); 
-	--card-border: rgba(255, 255, 255, 0.3);
-	--text-main: #1d1d1f;
-	--text-muted: #515154;
-	--accent: #0071e3; 
-	--card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.01);
+  color-scheme: light;
+  --bg: #edf1fa;
+  --text-main: #232b46;
+  --text-muted: #59647f;
+  --accent: #4d58c9;
+  --card-bg: rgba(255, 255, 255, 0.55);
+  --card-border: rgba(255, 255, 255, 0.88);
+  --card-shadow: 0 14px 50px -20px #525c942b, inset 0 1px 0 #fff;
+  --soft: rgba(255, 255, 255, 0.4);
+  --line: rgba(78, 92, 140, 0.13);
 }
-
-/* 🌓 1. 自动适配系统暗黑模式 */
-@media (prefers-color-scheme: dark) {
-	:root {
-		--bg-filter: brightness(0.6) blur(30px) saturate(160%);
-		--card-bg: rgba(20, 20, 25, 0.15); 
-		--card-border: rgba(255, 255, 255, 0.07);
-		--text-main: #f5f5f7;
-		--text-muted: #a1a1a6;
-		--accent: #2997ff;
-		--card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.15);
-	}
-}
-
-/* 🎯 2. 强行物理锁死：响应手动按钮 */
 html.dark {
-	--bg-filter: brightness(0.6) blur(30px) saturate(160%);
-	--card-bg: rgba(20, 20, 25, 0.15) !important; 
-	--card-border: rgba(255, 255, 255, 0.07) !important;
-	--text-main: #f5f5f7 !important;
-	--text-muted: #a1a1a6 !important;
-	--accent: #2997ff !important;
-	--card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.15) !important;
+  color-scheme: dark;
+  --bg: #101426;
+  --text-main: #edf0ff;
+  --text-muted: #aeb8d4;
+  --accent: #b0b9ff;
+  --card-bg: rgba(27, 34, 61, 0.7);
+  --card-border: rgba(213, 223, 255, 0.19);
+  --card-shadow: 0 18px 60px -22px #0009, inset 0 1px 0 #ffffff12;
+  --soft: rgba(255, 255, 255, 0.06);
+  --line: rgba(213, 223, 255, 0.14);
 }
-
-/* ==========================================
-   🌊 史诗级级联控光核心（全站明暗“瀑布顺滑过渡”引擎）
-   ========================================== */
-html, body, header, main, main *, footer, a, svg, button {
-	transition: background 0.5s cubic-bezier(0.25, 1, 0.5, 1),
-	            color 0.5s cubic-bezier(0.25, 1, 0.5, 1),
-	            border-color 0.5s cubic-bezier(0.25, 1, 0.5, 1),
-	            box-shadow 0.5s cubic-bezier(0.25, 1, 0.5, 1) !important;
+* {
+  box-sizing: border-box;
 }
-
-header, header * { transition-delay: 0s !important; }
-main h1, main p, main a, main span { transition-delay: 0.06s !important; }
-main ul li { transition-delay: 0.12s !important; }
-footer, footer * { transition-delay: 0.18s !important; }
-
-html.dark header { background: rgba(15, 15, 20, 0.12) !important; border-color: rgba(255, 255, 255, 0.05) !important; }
-html.dark header a, html.dark header h2 a { color: #f5f5f7 !important; }
-html.dark main h1, html.dark main p { color: #f5f5f7 !important; }
-html.dark main p { color: #a1a1a6 !important; }
-html.dark main ul li { background: rgba(20, 20, 25, 0.15) !important; border-color: rgba(255, 255, 255, 0.05) !important; }
-html.dark main ul li b { color: #f5f5f7 !important; }
-html.dark main ul li span { color: #a1a1a6 !important; }
-html.dark footer { color: #a1a1a6 !important; border-color: rgba(255, 255, 255, 0.05) !important; }
-html.dark footer a { color: #a1a1a6 !important; }
-
-/* ==========================================
-   🎮 实时渲染画布图层锁死
-   ========================================== */
-#fluid-canvas, #fluid-canvas-global {
-	position: fixed;
-	top: 0;
-	left: 0;
-	width: 100vw !important;
-	height: 100vh !important;
-	z-index: -2; 
-	pointer-events: none; 
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 130px;
 }
-
 body {
-	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-	margin: 0;
-	padding: 0;
-	min-height: 100vh;
-	color: var(--text-main);
-	position: relative;
-	overflow-x: hidden !important; 
+  margin: 0;
+  background: var(--bg);
+  color: var(--text-main);
+  font-family:
+    Atkinson,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "PingFang SC",
+    "Microsoft YaHei",
+    sans-serif;
+  font-size: 16px;
+  line-height: 1.7;
+  min-width: 320px;
+  isolation: isolate;
 }
-
-/* 💧 真正会动的液态玻璃背景：三块柔色光斑缓慢漂移缩放，替代原来的静态图片兜底 */
 body::before {
-	content: '';
-	position: fixed;
-	inset: -15%;
-	background:
-		radial-gradient(circle at 22% 24%, color-mix(in srgb, var(--accent) 45%, transparent), transparent 55%),
-		radial-gradient(circle at 78% 30%, rgba(175, 130, 235, 0.4), transparent 55%),
-		radial-gradient(circle at 50% 82%, rgba(255, 165, 165, 0.32), transparent 55%),
-		linear-gradient(160deg, #eef1f6, #dde4ee);
-	filter: var(--bg-filter);
-	z-index: -3; /* 垫在 Canvas 下方 */
-	animation: liquid-drift 26s ease-in-out infinite alternate;
-	will-change: transform;
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 8% 12%, #b4d5ff80, transparent 50%),
+    radial-gradient(ellipse at 93% 38%, #d4b9ff80, transparent 48%),
+    radial-gradient(ellipse at 30% 93%, #aadfd880, transparent 48%);
+  animation: ambient 24s ease-in-out infinite alternate;
 }
-
-@media (prefers-color-scheme: dark) {
-	body::before {
-		background:
-			radial-gradient(circle at 22% 24%, color-mix(in srgb, var(--accent) 40%, transparent), transparent 55%),
-			radial-gradient(circle at 78% 30%, rgba(150, 100, 220, 0.4), transparent 55%),
-			radial-gradient(circle at 50% 82%, rgba(90, 210, 220, 0.3), transparent 55%),
-			linear-gradient(160deg, #0b0c12, #05060a);
-	}
-}
-
 html.dark body::before {
-	background:
-		radial-gradient(circle at 22% 24%, color-mix(in srgb, var(--accent) 40%, transparent), transparent 55%),
-		radial-gradient(circle at 78% 30%, rgba(150, 100, 220, 0.4), transparent 55%),
-		radial-gradient(circle at 50% 82%, rgba(90, 210, 220, 0.3), transparent 55%),
-		linear-gradient(160deg, #0b0c12, #05060a);
+  opacity: 0.25;
 }
-
-@keyframes liquid-drift {
-	0%   { transform: translate(0%, 0%) scale(1); }
-	50%  { transform: translate(-3%, 3%) scale(1.06); }
-	100% { transform: translate(3%, -3%) scale(1); }
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Cpath fill='%23808ab0' opacity='.15' filter='url(%23n)' d='M0 0h180v180H0z'/%3E%3C/svg%3E");
+  opacity: 0.22;
 }
-
+a {
+  color: var(--accent);
+  text-underline-offset: 4px;
+}
+button,
+select {
+  font: inherit;
+}
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+a,
+button,
+select {
+  transition:
+    background 0.2s,
+    color 0.2s,
+    box-shadow 0.2s,
+    transform 0.2s;
+}
+a:focus-visible,
+button:focus-visible,
+select:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 5px;
+}
+a:hover {
+  color: var(--text-main);
+}
+h1,
+h2,
+h3,
+h4 {
+  line-height: 1.3;
+  letter-spacing: -0.035em;
+}
+h1,
+h2,
+h3,
+h4,
+p {
+  margin-top: 0;
+}
+h1 {
+  font-size: clamp(2.4rem, 5.5vw, 4.8rem);
+}
+h2 {
+  font-size: clamp(1.5rem, 3vw, 2.15rem);
+}
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+main {
+  width: min(1120px, calc(100% - 64px));
+  margin: auto;
+  padding: 54px 0 70px;
+}
+.glass {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+  backdrop-filter: blur(28px) saturate(145%);
+  -webkit-backdrop-filter: blur(28px) saturate(145%);
+  border-radius: 30px;
+}
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--text-muted);
+  margin-bottom: 24px;
+}
+.eyebrow::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #5eaa93;
+  box-shadow: 0 0 0 4px #5eaa9315;
+}
+.muted {
+  color: var(--text-muted);
+}
+.button {
+  display: inline-flex;
+  gap: 20px;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 10px 23px;
+  border-radius: 99px;
+  text-decoration: none;
+  border: 1px solid var(--card-border);
+  background: var(--soft);
+  color: var(--text-main);
+  font-size: 0.9rem;
+}
+.button.primary {
+  background: #4e5aca;
+  color: #fff;
+  border-color: #ffffff40;
+  box-shadow: 0 6px 20px #4e5aca30;
+}
+.button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px #4e5aca26;
+}
+.section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin: 52px 0 22px;
+}
+.section-heading h2 {
+  margin: 0;
+}
+.section-heading a {
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+.post-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+}
+.post-card {
+  text-decoration: none;
+  color: var(--text-main);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.post-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 22px 55px -25px #525c9466;
+}
+.post-cover {
+  aspect-ratio: 16/9;
+  object-fit: cover;
+  width: 100%;
+  border-radius: 20px;
+  background: var(--soft);
+}
+.post-info {
+  padding: 23px 17px 17px;
+}
+.post-info h3 {
+  font-size: 1.3rem;
+  margin: 12px 0;
+}
+.post-info p {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-bottom: 18px;
+}
+.post-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+.tag {
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  padding: 3px 10px;
+  font-size: 0.7rem;
+}
+.read-more {
+  font-size: 0.8rem;
+  color: var(--accent);
+  display: flex;
+  justify-content: space-between;
+}
+.page-heading {
+  max-width: 700px;
+  margin: 20px 0 40px;
+}
+.page-heading h1 {
+  margin-bottom: 16px;
+}
+.page-heading p {
+  color: var(--text-muted);
+}
+.skip-link {
+  position: fixed;
+  left: 20px;
+  top: -80px;
+  z-index: 200;
+  padding: 10px 20px;
+  background: var(--bg);
+  border-radius: 10px;
+}
+.skip-link:focus {
+  top: 12px;
+}
+::selection {
+  background: #a7afff70;
+}
+code {
+  background: var(--soft);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 2px 6px;
+  font-size: 0.9em;
+}
+pre {
+  overflow-x: auto;
+  padding: 20px;
+  border-radius: 16px;
+}
+pre code {
+  border: 0;
+  background: none;
+  padding: 0;
+}
+blockquote {
+  border-left: 3px solid var(--accent);
+  margin: 24px 0;
+  padding: 4px 22px;
+  color: var(--text-muted);
+}
+@keyframes ambient {
+  to {
+    transform: scale(1.08) translateY(-2%);
+  }
+}
+@media (max-width: 700px) {
+  main {
+    width: calc(100% - 32px);
+    padding: 32px 0 44px;
+  }
+  .post-list {
+    grid-template-columns: 1fr;
+  }
+  .glass {
+    border-radius: 24px;
+  }
+  .section-heading {
+    margin-top: 36px;
+  }
+  .section-heading a {
+    white-space: nowrap;
+  }
+  h1 {
+    font-size: 2.5rem;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
-	body::before { animation: none; }
-}
-
-/* ==========================================
-   🎯 头栏极致对齐与链接高级淡入淡出
-   ========================================== */
-header {
-	background: rgba(255, 255, 255, 0.1);
-	backdrop-filter: blur(30px) saturate(210%) !important; 
-	-webkit-backdrop-filter: blur(30px) saturate(210%) !important;
-	border-bottom: 1px solid var(--card-border);
-	padding: 0.8rem 2rem !important; 
-	position: sticky;
-	top: 0;
-	z-index: 100;
-}
-
-header nav { display: flex; align-items: center; justify-content: space-between; max-width: 960px; margin: 0 auto; height: auto !important; }
-header h2 { margin: 0 !important; padding: 0 !important; font-size: 1.4rem !important; line-height: 1 !important; display: flex; align-items: center; }
-header a, header h2 a { color: var(--text-main); text-decoration: none !important; font-weight: 600; opacity: 0.85; }
-header a:hover, html.dark header a:hover { color: var(--accent) !important; opacity: 1 !important; }
-header .internal-links, header .social-links { display: flex; gap: 1.5rem; align-items: center; }
-.right-menu { display: flex; align-items: center; gap: 1.5rem; }
-
-/* ==========================================
-   🎯 正文与长条胶囊
-   ========================================== */
-main { width: 100%; max-width: 820px; margin: 0 auto; padding: 3rem 1.5rem; box-sizing: border-box; }
-main ul { padding: 0 !important; margin: 2rem 0 !important; }
-
-main ul li {
-	list-style: none !important;
-	background: var(--card-bg);
-	backdrop-filter: blur(20px) saturate(180%) !important;
-	-webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-	border: 1px solid var(--card-border);
-	box-shadow: var(--card-shadow);
-	border-radius: 9999px !important; 
-	padding: 0.8rem 2.2rem !important; 
-	margin-bottom: 1.2rem !important;
-	word-break: break-all; 
-}
-main ul li:hover { transform: scale(1.015) !important; background: rgba(255, 255, 255, 0.25) !important; }
-html.dark main ul li:hover { background: rgba(255, 255, 255, 0.08) !important; }
-
-main section ul li, article, .prose { border-radius: 24px !important; }
-code { background: rgba(255, 255, 255, 0.15); padding: 0.2rem 0.6rem; border-radius: 9999px; font-size: 0.9em; }
-
-/* ==========================================
-   🍏 专属图片比例纠偏
-   ========================================== */
-.hero-image img, .article-hero-img, main img { width: auto !important; max-width: 100% !important; height: auto !important; max-height: 400px !important; object-fit: contain !important; margin: 0 auto !important; border-radius: 24px !important; display: block !important; }
-
-/* ==========================================
-   🚨 移动端/手机端像素级防乱
-   ========================================== */
-@media (max-width: 720px) {
-	header { padding: 0.8rem 1rem !important; }
-	header nav { flex-direction: column; gap: 0.5rem; text-align: center; }
-	header h2 { font-size: 1.2rem !important; margin: 0 !important; }
-	.internal-links { gap: 1rem !important; }
-	.right-menu { gap: 1rem !important; }
-	main { padding: 1.5rem 1rem !important; }
-	main h1 { font-size: 1.6rem !important; }
-	main ul li { border-radius: 20px !important; padding: 1rem 1.2rem !important; font-size: 0.9rem !important; line-height: 1.4 !important; }
-	main section ul { display: flex; flex-direction: column; gap: 1.5rem !important; }
-	main section ul li { width: 100% !important; transform: none !important; }
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
 }

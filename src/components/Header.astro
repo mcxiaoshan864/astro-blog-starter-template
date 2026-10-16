@@ -1,213 +1,260 @@
 ---
-import HeaderLink from './HeaderLink.astro';
-import { SITE_TITLE } from '../consts';
+import HeaderLink from "./HeaderLink.astro";
 ---
 
-<header>
-	<nav>
-		<h2><a href="/" id="nav-title">{SITE_TITLE}</a></h2>
-		
-		<div class="internal-links">
-			<HeaderLink href="/" id="lang-home">首页</HeaderLink>
-			<HeaderLink href="/blog" id="lang-blog">博客</HeaderLink>
-			<HeaderLink href="/about" id="lang-about">关于</HeaderLink>
-		</div>
-		
-		<div class="right-menu">
-			<div class="drag-lang-container" id="drag-track">
-				<div class="drag-label" data-idx="0">简</div>
-				<div class="drag-label" data-idx="1">繁</div>
-				<div class="drag-label" data-idx="2">EN</div>
-				<div class="drag-handle" id="drag-handle"></div>
-			</div>
-
-			<button id="theme-toggle" aria-label="Toggle theme">
-				<svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-				<svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-			</button>
-
-			<div class="social-links">
-				<a href="https://space.bilibili.com/3493093791763273" target="_blank" rel="noopener noreferrer" aria-label="Bilibili">
-					<svg viewBox="0 0 1024 1024" width="22" height="22"><path fill="currentColor" d="M777.6 198.4c-8 0-16.8 3.2-22.4 9.6l-89.6 89.6H358.4l-89.6-89.6c-5.6-6.4-14.4-9.6-22.4-9.6-17.6 0-32 14.4-32 32 0 8 3.2 16.8 9.6 22.4l70.4 70.4c-64 48-106.4 123.2-106.4 208v224c0 140.8 113.6 254.4 254.4 254.4h358.4c140.8 0 254.4-113.6 254.4-254.4V543.2c0-84.8-42.4-160-106.4-208l70.4-70.4c6.4-5.6 9.6-14.4 9.6-22.4 0-17.6-14.4-32-32-32zM294.4 736c-26.4 0-48-21.6-48-48V544c0-26.4 21.6-48 48-48s48 21.6 48 48v144c0 26.4-21.6 48-48 48zm435.2 0c-26.4 0-48-21.6-48-48V544c0-26.4 21.6-48 48-48s48 21.6 48 48v144c0 26.4-21.6 48-48 48z"></path></svg>
-				</a>
-				<a href="https://x.com/MXiaoshan68280" target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)">
-					<svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>
-				</a>
-				<a href="https://github.com/mcxiaoshan864/astro-blog-starter-template" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
-					<svg viewBox="0 0 16 16" width="22" height="22"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
-				</a>
-			</div>
-		</div>
-	</nav>
+<a class="skip-link" href="#main">
+  跳转到正文
+</a>
+<header class="site-header">
+  <nav class="glass" aria-label="主导航">
+    <a href="/" class="brand" aria-label="mcxiaoshan 首页">
+      <span class="brand-mark">
+        m<span>✦</span>
+      </span>
+      <span>
+        mcxiaoshan<span class="brand-sub">一个人的数字花园</span>
+      </span>
+    </a>
+    <div class="internal-links">
+      <HeaderLink href="/" data-nav="home">
+        首页
+      </HeaderLink>
+      <HeaderLink href="/blog/" data-nav="blog">
+        日志
+      </HeaderLink>
+      <HeaderLink href="/about/" data-nav="about">
+        关于
+      </HeaderLink>
+    </div>
+    <div class="tools">
+      <select id="language" aria-label="界面语言">
+        <option value="zh-CN">简中</option>
+        <option value="zh-TW">繁中</option>
+        <option value="en">EN</option>
+      </select>
+      <button
+        id="theme-toggle"
+        type="button"
+        aria-label="切换深色模式"
+        aria-pressed="false"
+      >
+        <svg
+          class="moon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          aria-hidden="true"
+        >
+          <path d="M20.5 13a8.5 8.5 0 1 1-9.5-9.5A7 7 0 0 0 20.5 13Z" />
+        </svg>
+        <svg
+          class="sun"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          aria-hidden="true"
+        >
+          <circle cx="12" cy="12" r="4" />
+          <path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5" />
+        </svg>
+      </button>
+    </div>
+  </nav>
 </header>
-
 <script is:inline>
-	// 1. 明暗控制逻辑
-	const handleToggleClick = () => {
-		const element = document.documentElement;
-		element.classList.toggle("dark");
-		localStorage.setItem("theme", element.classList.contains("dark") ? "dark" : "light");
-	};
-	document.getElementById("theme-toggle")?.addEventListener("click", handleToggleClick);
-
-	// 2. 多语言词典及严格控制杆引擎
-	const langDict = {
-		'zh-CN': { home: '首页', blog: '博客', about: '关于' },
-		'zh-TW': { home: '首頁', blog: '網誌', about: '關於' },
-		'en': { home: 'Home', blog: 'Blog', about: 'About' }
-	};
-	const langOrder = ['zh-CN', 'zh-TW', 'en'];
-
-	const track = document.getElementById('drag-track');
-	const handle = document.getElementById('drag-handle');
-	let isDragging = false;
-	let startX = 0;
-	let currentX = 0;
-	const stepWidth = 42; 
-
-	const updateTexts = (lang) => {
-		const data = langDict[lang] || langDict['zh-CN'];
-		['lang-home', 'lang-blog', 'lang-about'].forEach((id, i) => {
-			const el = document.getElementById(id);
-			if (el) el.innerText = Object.values(data)[i];
-		});
-		document.documentElement.setAttribute('lang', lang);
-		localStorage.setItem('site-lang', lang);
-		window.dispatchEvent(new CustomEvent('lang-changed', { detail: lang }));
-	};
-
-	const snapToLang = (lang, useAnimation = true) => {
-		const idx = langOrder.indexOf(lang);
-		if (idx === -1) return;
-		
-		currentX = idx * stepWidth;
-		handle.style.transition = useAnimation ? 'transform 0.2s cubic-bezier(0.25, 1, 0.5, 1)' : 'none';
-		handle.style.transform = `translate3d(${currentX}px, 0px, 0px)`;
-		
-		document.querySelectorAll('.drag-label').forEach((lbl, i) => {
-			if(i === idx) lbl.classList.add('active');
-			else lbl.classList.remove('active');
-		});
-	};
-
-	// 全端 Pointer 拖拽侦听机制
-	handle.addEventListener('pointerdown', (e) => {
-		isDragging = true;
-		handle.setPointerCapture(e.pointerId);
-		startX = e.clientX - currentX;
-		handle.style.transition = 'none';
-	});
-
-	window.addEventListener('pointermove', (e) => {
-		if (!isDragging) return;
-		let moveX = e.clientX - startX;
-		if (moveX < 0) moveX = 0;
-		if (moveX > stepWidth * 2) moveX = stepWidth * 2;
-		
-		currentX = moveX;
-		handle.style.transform = `translate3d(${currentX}px, 0px, 0px)`;
-	});
-
-	window.addEventListener('pointerup', (e) => {
-		if (!isDragging) return;
-		isDragging = false;
-		const closestIdx = Math.round(currentX / stepWidth);
-		const targetLang = langOrder[closestIdx];
-		snapToLang(targetLang);
-		updateTexts(targetLang);
-	});
-
-	document.querySelectorAll('.drag-label').forEach(lbl => {
-		lbl.addEventListener('click', () => {
-			const idx = parseInt(lbl.getAttribute('data-idx'));
-			const targetLang = langOrder[idx];
-			snapToLang(targetLang);
-			updateTexts(targetLang);
-		});
-	});
-
-	const initialLang = localStorage.getItem('site-lang') || 'zh-CN';
-	setTimeout(() => { snapToLang(initialLang, false); updateTexts(initialLang); }, 40);
+  (() => {
+    const toggle = document.getElementById("theme-toggle");
+    const syncTheme = () => {
+      const dark = document.documentElement.classList.contains("dark");
+      toggle.setAttribute("aria-pressed", String(dark));
+      toggle.setAttribute("aria-label", dark ? "切换浅色模式" : "切换深色模式");
+    };
+    syncTheme();
+    toggle.addEventListener("click", () => {
+      document.documentElement.classList.toggle("dark");
+      try {
+        localStorage.setItem(
+          "theme",
+          document.documentElement.classList.contains("dark")
+            ? "dark"
+            : "light",
+        );
+      } catch {}
+      syncTheme();
+    });
+    const dictionary = {
+      "zh-CN": { home: "首页", blog: "日志", about: "关于" },
+      "zh-TW": { home: "首頁", blog: "日誌", about: "關於" },
+      en: { home: "Home", blog: "Journal", about: "About" },
+    };
+    const select = document.getElementById("language");
+    const update = (lang) => {
+      if (!dictionary[lang]) lang = "zh-CN";
+      select.value = lang;
+      document.documentElement.lang = lang;
+      document
+        .querySelectorAll("[data-nav]")
+        .forEach((el) => (el.textContent = dictionary[lang][el.dataset.nav]));
+      window.dispatchEvent(new CustomEvent("lang-changed", { detail: lang }));
+      try {
+        localStorage.setItem("site-lang", lang);
+      } catch {}
+    };
+    select.addEventListener("change", () => update(select.value));
+    let initial = "zh-CN";
+    try {
+      initial = localStorage.getItem("site-lang") || initial;
+    } catch {}
+    update(initial);
+  })();
 </script>
-
 <style>
-	header { margin: 0; padding: 0; width: 100%; }
-	nav { display: flex; align-items: center; justify-content: space-between; }
-	.internal-links { display: flex; gap: 1.5rem; }
-	.right-menu { display: flex; align-items: center; gap: 1.2rem; }
-	.social-links { display: flex; align-items: center; gap: 1.2rem; }
-	.social-links a { display: flex; align-items: center; color: inherit; opacity: 0.7; }
-	.social-links a:hover { opacity: 1; }
-
-	.drag-lang-container {
-		position: relative;
-		display: flex;
-		background: rgba(255, 255, 255, 0.08);
-		border: 1px solid rgba(255, 255, 255, 0.15);
-		padding: 2px;
-		border-radius: 9999px;
-		width: 130px; 
-		height: 28px;
-		box-sizing: border-box;
-		user-select: none;
-		touch-action: none;
-	}
-	:global(html.dark) .drag-lang-container {
-		background: rgba(0, 0, 0, 0.2);
-		border-color: rgba(255, 255, 255, 0.06);
-	}
-	
-	.drag-label {
-		width: 42px;
-		height: 100%;
-		font-size: 0.7rem;
-		font-weight: 700;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		cursor: pointer;
-		color: inherit;
-		opacity: 0.4;
-		z-index: 2;
-		transition: opacity 0.2s ease;
-	}
-	.drag-label.active { opacity: 1; }
-
-	.drag-handle {
-		position: absolute;
-		top: 2px;
-		left: 2px;
-		width: 42px; 
-		height: 22px;
-		background: rgba(255, 255, 255, 0.25);
-		border: 1px solid rgba(255, 255, 255, 0.2);
-		border-radius: 9999px;
-		box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-		cursor: grab;
-		z-index: 1;
-		touch-action: none;
-		will-change: transform;
-	}
-	.drag-handle:active { cursor: grabbing; background: rgba(255, 255, 255, 0.35); }
-	:global(html.dark) .drag-handle { background: rgba(255, 255, 255, 0.12); border-color: rgba(255, 255, 255, 0.1); }
-
-	#theme-toggle {
-		background: rgba(255, 255, 255, 0.12);
-		border: 1px solid rgba(255, 255, 255, 0.2);
-		padding: 0.5rem;
-		border-radius: 9999px;
-		cursor: pointer;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		color: inherit;
-		width: 34px;
-		height: 34px;
-	}
-	.sun { display: none; width: 16px; height: 16px; }
-	.moon { display: block; width: 16px; height: 16px; }
-	@media (max-width: 720px) {
-		.right-menu { gap: 0.6rem; }
-		.social-links { display: none; } 
-	}
+  .site-header {
+    position: sticky;
+    top: 18px;
+    z-index: 100;
+    width: min(1200px, calc(100% - 48px));
+    margin: 22px auto 0;
+  }
+  .site-header nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 18px;
+    border-radius: 24px;
+    gap: 20px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    color: var(--text-main);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    text-decoration: none;
+    line-height: 1.3;
+  }
+  .brand-mark {
+    display: grid;
+    place-items: center;
+    position: relative;
+    width: 43px;
+    height: 43px;
+    border-radius: 15px;
+    background: linear-gradient(145deg, #7584e4, #4a54ab);
+    color: white;
+    font-size: 28px;
+    font-weight: 400;
+    box-shadow:
+      inset 0 1px 2px #fff9,
+      0 4px 14px #5968bb33;
+  }
+  .brand-mark span {
+    position: absolute;
+    right: 3px;
+    top: 3px;
+    font-size: 12px;
+  }
+  .brand-sub {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    font-weight: 400;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+  .internal-links {
+    display: flex;
+    gap: 4px;
+    background: var(--soft);
+    padding: 4px;
+    border: 1px solid var(--line);
+    border-radius: 99px;
+  }
+  .internal-links :global(a) {
+    padding: 7px 20px;
+    border-radius: 99px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+  .internal-links :global(a.active) {
+    background: var(--card-bg);
+    box-shadow:
+      0 2px 6px #29385d12,
+      inset 0 1px 0 #ffffff60;
+    color: var(--text-main);
+  }
+  .tools {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .tools select {
+    border: 0;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    max-width: 68px;
+    cursor: pointer;
+  }
+  .tools option {
+    background: var(--bg);
+    color: var(--text-main);
+  }
+  #theme-toggle {
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--card-border);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    background: var(--soft);
+    color: var(--text-main);
+    cursor: pointer;
+  }
+  svg {
+    width: 19px;
+    height: 19px;
+  }
+  .sun {
+    display: none;
+  }
+  :global(html.dark) .sun {
+    display: block;
+  }
+  :global(html.dark) .moon {
+    display: none;
+  }
+  @media (max-width: 700px) {
+    .site-header {
+      width: calc(100% - 24px);
+      top: 10px;
+      margin-top: 12px;
+    }
+    .site-header nav {
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 12px;
+    }
+    .brand {
+      font-size: 0.9rem;
+    }
+    .brand-sub {
+      font-size: 9px;
+    }
+    .internal-links {
+      order: 3;
+      flex-basis: 100%;
+      justify-content: center;
+    }
+    .internal-links :global(a) {
+      padding: 6px 24px;
+    }
+    .tools {
+      margin-left: auto;
+      gap: 4px;
+    }
+  }
 </style>

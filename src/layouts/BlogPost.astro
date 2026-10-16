@@ -1,149 +1,175 @@
 ---
-import type { CollectionEntry } from 'astro:content';
-import BaseHead from '../components/BaseHead.astro';
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
-import FormattedDate from '../components/FormattedDate.astro';
-
-type Props = CollectionEntry<'blog'>['data'];
-
+import type { CollectionEntry } from "astro:content";
+import BaseHead from "../components/BaseHead.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import FormattedDate from "../components/FormattedDate.astro";
+type Props = CollectionEntry<"blog">["data"];
 const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
+const isAbout = Astro.url.pathname.replace(/\/$/, "") === "/about";
 ---
 
+<!doctype html>
 <html lang="zh-CN">
-	<head>
-		<BaseHead title={title} description={description} />
-	</head>
-
-	<body>
-		<canvas id="fluid-canvas-global"></canvas>
-
-		<Header />
-		<main>
-			<article>
-				<div class="hero-image">
-					{heroImage && <img width={1024} height={512} src={heroImage} alt="" class="article-hero-img" />}
-				</div>
-				<div class="prose">
-					<div class="title">
-						<div class="date">
-							<FormattedDate date={pubDate} />
-							{
-								updatedDate && (
-									<div class="last-updated-on">
-										Last updated on <FormattedDate date={updatedDate} />
-									</div>
-								)
-							}
-						</div>
-						<h1 style="color: var(--text-main);">{title}</h1>
-						<hr />
-					</div>
-					<slot />
-				</div>
-			</article>
-		</main>
-		<Footer />
-
-		<script is:inline>
-			const canvas = document.getElementById('fluid-canvas-global');
-			if (canvas) {
-				const ctx = canvas.getContext('2d');
-				let pointer = { x: 0, y: 0, targetX: 0, targetY: 0 };
-				let tick = 0;
-
-				const resize = () => {
-					canvas.width = window.innerWidth;
-					canvas.height = window.innerHeight;
-				};
-				window.addEventListener('resize', resize);
-				resize();
-
-				window.addEventListener('pointermove', (e) => {
-					pointer.targetX = e.clientX;
-					pointer.targetY = e.clientY;
-				});
-
-				const render = () => {
-					tick += 0.003;
-					pointer.x += (pointer.targetX - pointer.x) * 0.05;
-					pointer.y += (pointer.targetY - pointer.y) * 0.05;
-
-					const w = canvas.width;
-					const h = canvas.height;
-					const grad = ctx.createLinearGradient(w * 0.5 + Math.sin(tick) * w * 0.3, 0, w * 0.5 + Math.cos(tick * 1.2) * w * 0.4, h);
-					const isDark = document.documentElement.classList.contains('dark');
-
-					if (isDark) {
-						grad.addColorStop(0, `hsla(${210 + Math.sin(tick) * 30}, 75%, 15%, 1)`);
-						grad.addColorStop(0.5, `hsla(${260 + Math.cos(tick) * 40}, 70%, 12%, 1)`);
-						grad.addColorStop(1, `hsla(${190 + Math.sin(tick * 0.8) * 20}, 80%, 10%, 1)`);
-					} else {
-						grad.addColorStop(0, `hsla(${215 + Math.sin(tick) * 20}, 90%, 65%, 1)`);
-						grad.addColorStop(0.5, `hsla(${250 + Math.cos(tick) * 30}, 85%, 75%, 1)`);
-						grad.addColorStop(1, `hsla(${195 + Math.sin(tick * 0.5) * 25}, 90%, 70%, 1)`);
-					}
-
-					ctx.fillStyle = grad;
-					ctx.fillRect(0, 0, w, h);
-
-					if(pointer.x !== 0 && pointer.y !== 0) {
-						const mouseGrad = ctx.createRadialGradient(pointer.x, pointer.y, 10, pointer.x, pointer.y, w * 0.4);
-						mouseGrad.addColorStop(0, isDark ? 'rgba(41, 151, 255, 0.15)' : 'rgba(255, 255, 255, 0.4)');
-						mouseGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-						ctx.fillStyle = mouseGrad;
-						ctx.fillRect(0, 0, w, h);
-					}
-					requestAnimationFrame(render);
-				};
-				render();
-			}
-		</script>
-	</body>
+  <head>
+    <BaseHead title={title} description={description} image={heroImage} />
+  </head>
+  <body>
+    <Header />
+    <main id="main" class="reading">
+      <a class="back-link" href={isAbout ? "/" : "/blog/"}>
+        ← {isAbout ? "返回首页" : "所有日志"}
+      </a>
+      <article class="glass">
+        <div class="article-heading">
+          <div class="eyebrow">
+            {isAbout ? "Behind the screen" : "Notes & explorations"}
+          </div>
+          <h1>{title}</h1>
+          <p class="article-description">{description}</p>
+          <div class="article-meta">
+            <span>mcxiaoshan</span>
+            <span>·</span>
+            <FormattedDate date={pubDate} />
+            {updatedDate && (
+              <span>
+                更新于 <FormattedDate date={updatedDate} />
+              </span>
+            )}
+          </div>
+        </div>
+        {heroImage && (
+          <img
+            class="article-cover"
+            src={heroImage}
+            width="1024"
+            height="512"
+            alt=""
+          />
+        )}
+        <div class="prose">
+          <slot />
+        </div>
+        <div class="article-end">
+          <span>✦</span> 感谢你读到这里。<a href="/blog/">继续探索 ↗</a>
+        </div>
+      </article>
+    </main>
+    <Footer />
+  </body>
 </html>
-
 <style>
-	/* 保证子页面的画布同样完美垫底 */
-	#fluid-canvas-global {
-		position: fixed;
-		top: 0;
-		left: 0;
-		width: 100vw !important;
-		height: 100vh !important;
-		z-index: -2;
-		pointer-events: none;
-	}
-	main {
-		width: 100%;
-		max-width: 820px;
-		margin: 0 auto;
-		padding: 2rem 1.5rem;
-		box-sizing: border-box;
-	}
-	article {
-		background: var(--card-bg);
-		backdrop-filter: blur(20px) saturate(180%);
-		-webkit-backdrop-filter: blur(20px) saturate(180%);
-		border: 1px solid var(--card-border);
-		box-shadow: var(--card-shadow);
-		border-radius: 24px;
-		padding: 2rem;
-		margin-top: 2rem;
-	}
-	.prose {
-		color: var(--text-main);
-	}
-	.title h1 {
-		margin: 0 0 0.5rem 0;
-	}
-	.date {
-		color: var(--text-muted);
-		margin-bottom: 1rem;
-		font-size: 0.9rem;
-	}
-	hr {
-		border: 0;
-		border-top: 1px solid var(--card-border);
-		margin: 1.5rem 0;
-	}
+  .reading {
+    max-width: 880px;
+  }
+  .back-link {
+    display: inline-block;
+    text-decoration: none;
+    font-size: 0.85rem;
+    margin-bottom: 24px;
+    color: var(--text-muted);
+  }
+  article {
+    overflow: hidden;
+  }
+  .article-heading {
+    padding: 44px 48px 30px;
+  }
+  .article-heading h1 {
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    line-height: 1.4;
+  }
+  .article-description {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+  }
+  .article-meta {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+  }
+  .article-cover {
+    max-height: 420px;
+    width: 100%;
+    object-fit: cover;
+  }
+  .prose {
+    padding: 36px 48px;
+    overflow-wrap: anywhere;
+    line-height: 1.95;
+  }
+  .prose :global(h1) {
+    font-size: 1.7rem;
+  }
+  .prose :global(h2) {
+    font-size: 1.5rem;
+    margin-top: 40px;
+  }
+  .prose :global(h3) {
+    font-size: 1.2rem;
+    margin-top: 32px;
+  }
+  .prose :global(li) {
+    margin: 9px 0;
+    padding-left: 5px;
+  }
+  .prose :global(ul),
+  .prose :global(ol) {
+    padding-left: 24px;
+  }
+  .prose :global(img) {
+    border-radius: 16px;
+    margin: 24px auto;
+  }
+  .prose :global(hr) {
+    border: 0;
+    border-top: 1px solid var(--line);
+    margin: 30px 0;
+  }
+  .prose :global(table) {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    border-collapse: collapse;
+  }
+  .prose :global(td),
+  .prose :global(th) {
+    border: 1px solid var(--line);
+    padding: 8px 12px;
+  }
+  .article-end {
+    margin: 0 48px;
+    padding: 24px 0;
+    border-top: 1px solid var(--line);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .article-end > span {
+    color: var(--accent);
+  }
+  .article-end a {
+    margin-left: auto;
+    text-decoration: none;
+  }
+  @media (max-width: 700px) {
+    .article-heading {
+      padding: 30px 24px;
+    }
+    .prose {
+      padding: 24px;
+      font-size: 0.95rem;
+    }
+    .article-end {
+      margin: 0 24px;
+      flex-wrap: wrap;
+    }
+    .article-heading h1 {
+      font-size: 1.8rem;
+    }
+  }
 </style>

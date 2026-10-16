@@ -1,0 +1,32 @@
+---
+import FormattedDate from "./FormattedDate.astro";
+import type { CollectionEntry } from "astro:content";
+interface Props {
+  post: CollectionEntry<"blog">;
+}
+const { post } = Astro.props;
+---
+
+<a class="post-card glass" href={`/blog/${post.id}/`}>
+  {post.data.heroImage && (
+    <img
+      class="post-cover"
+      src={post.data.heroImage}
+      width="720"
+      height="405"
+      alt=""
+      loading="lazy"
+    />
+  )}
+  <div class="post-info">
+    <div class="post-meta">
+      <span class="tag">折腾手记</span>
+      <FormattedDate date={post.data.pubDate} />
+    </div>
+    <h3>{post.data.title}</h3>
+    <p>{post.data.description}</p>
+    <span class="read-more">
+      阅读这篇日志 <span aria-hidden="true">↗</span>
+    </span>
+  </div>
+</a>
