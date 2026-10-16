@@ -329,3 +329,29 @@ blockquote {
     transition: none !important;
   }
 }
+
+/* Capture complete themes; let one curved sheet reveal the new page. */
+html.theme-transitioning *,
+html.theme-transitioning *::before,
+html.theme-transitioning *::after {
+  transition: none !important;
+}
+html.theme-transitioning::view-transition {
+  pointer-events: none;
+}
+html.theme-transitioning::view-transition-group(root) {
+  animation: none;
+}
+html.theme-transitioning::view-transition-old(root),
+html.theme-transitioning::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+  opacity: 1;
+}
+html.theme-transitioning::view-transition-old(root) {
+  z-index: 1;
+}
+html.theme-transitioning::view-transition-new(root) {
+  z-index: 2;
+  clip-path: ellipse(0px 0px at var(--theme-x) var(--theme-y));
+}

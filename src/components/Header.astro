@@ -59,32 +59,6 @@ import HeaderLink from "./HeaderLink.astro";
 </header>
 <script is:inline>
   (() => {
-    const toggle = document.getElementById("theme-toggle");
-    const sync = () => {
-      const dark = document.documentElement.classList.contains("dark");
-      toggle.setAttribute("aria-pressed", String(dark));
-      const lang = document.documentElement.lang;
-      const labels =
-        lang === "zh-HK"
-          ? ["轉用淺色模式", "轉用深色模式"]
-          : lang === "en"
-            ? ["Switch to light mode", "Switch to dark mode"]
-            : ["切换浅色模式", "切换深色模式"];
-      toggle.setAttribute("aria-label", labels[dark ? 0 : 1]);
-    };
-    sync();
-    toggle.addEventListener("click", () => {
-      document.documentElement.classList.toggle("dark");
-      try {
-        localStorage.setItem(
-          "theme",
-          document.documentElement.classList.contains("dark")
-            ? "dark"
-            : "light",
-        );
-      } catch {}
-      sync();
-    });
     const words = {
       "zh-CN": { home: "首页", blog: "日志", about: "关于" },
       "zh-TW": { home: "首頁", blog: "日誌", about: "關於" },
@@ -95,7 +69,6 @@ import HeaderLink from "./HeaderLink.astro";
       if (!words[lang]) lang = "zh-CN";
       select.value = lang;
       document.documentElement.lang = lang === "zh-TW" ? "zh-HK" : lang;
-      sync();
       document
         .querySelectorAll("[data-nav]")
         .forEach((el) => (el.textContent = words[lang][el.dataset.nav]));
@@ -111,6 +84,10 @@ import HeaderLink from "./HeaderLink.astro";
     } catch {}
     update(lang);
   })();
+</script>
+<script>
+  import { initThemeToggle } from "../scripts/theme-toggle";
+  initThemeToggle();
 </script>
 <style>
   .site-header {

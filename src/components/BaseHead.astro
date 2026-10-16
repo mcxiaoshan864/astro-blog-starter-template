@@ -40,5 +40,8 @@ const { title, description, image = "/favicon.svg" } = Astro.props;
       (theme !== "light" &&
         window.matchMedia("(prefers-color-scheme: dark)").matches);
     document.documentElement.classList.toggle("dark", dark);
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute("content", dark ? "#0e2035" : "#e9f1f6");
   })();
 </script>
