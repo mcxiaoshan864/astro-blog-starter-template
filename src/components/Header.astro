@@ -63,7 +63,14 @@ import HeaderLink from "./HeaderLink.astro";
     const sync = () => {
       const dark = document.documentElement.classList.contains("dark");
       toggle.setAttribute("aria-pressed", String(dark));
-      toggle.setAttribute("aria-label", dark ? "切换浅色模式" : "切换深色模式");
+      const lang = document.documentElement.lang;
+      const labels =
+        lang === "zh-HK"
+          ? ["轉用淺色模式", "轉用深色模式"]
+          : lang === "en"
+            ? ["Switch to light mode", "Switch to dark mode"]
+            : ["切换浅色模式", "切换深色模式"];
+      toggle.setAttribute("aria-label", labels[dark ? 0 : 1]);
     };
     sync();
     toggle.addEventListener("click", () => {
@@ -87,7 +94,8 @@ import HeaderLink from "./HeaderLink.astro";
     const update = (lang) => {
       if (!words[lang]) lang = "zh-CN";
       select.value = lang;
-      document.documentElement.lang = lang;
+      document.documentElement.lang = lang === "zh-TW" ? "zh-HK" : lang;
+      sync();
       document
         .querySelectorAll("[data-nav]")
         .forEach((el) => (el.textContent = words[lang][el.dataset.nav]));
