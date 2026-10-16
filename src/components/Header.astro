@@ -6,72 +6,66 @@ import HeaderLink from "./HeaderLink.astro";
   跳转到正文
 </a>
 <header class="site-header">
-  <nav class="glass" aria-label="主导航">
-    <a href="/" class="brand" aria-label="mcxiaoshan 首页">
-      <span class="brand-mark">
-        m<span>✦</span>
-      </span>
-      <span>
-        mcxiaoshan<span class="brand-sub">一个人的数字花园</span>
-      </span>
-    </a>
-    <div class="internal-links">
-      <HeaderLink href="/" data-nav="home">
-        首页
-      </HeaderLink>
-      <HeaderLink href="/blog/" data-nav="blog">
-        日志
-      </HeaderLink>
-      <HeaderLink href="/about/" data-nav="about">
-        关于
-      </HeaderLink>
-    </div>
-    <div class="tools">
-      <select id="language" aria-label="界面语言">
-        <option value="zh-CN">简中</option>
-        <option value="zh-TW">繁中</option>
-        <option value="en">EN</option>
-      </select>
-      <button
-        id="theme-toggle"
-        type="button"
-        aria-label="切换深色模式"
-        aria-pressed="false"
-      >
-        <svg
-          class="moon"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.5"
-          aria-hidden="true"
-        >
-          <path d="M20.5 13a8.5 8.5 0 1 1-9.5-9.5A7 7 0 0 0 20.5 13Z" />
-        </svg>
-        <svg
-          class="sun"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.5"
-          aria-hidden="true"
-        >
-          <circle cx="12" cy="12" r="4" />
-          <path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5" />
-        </svg>
-      </button>
-    </div>
+  <a class="wordmark" href="/">
+    mcxiaoshan<span>.ccwu.cc</span>
+  </a>
+  <nav class="glass-control" aria-label="主导航">
+    <HeaderLink href="/" data-nav="home">
+      首页
+    </HeaderLink>
+    <HeaderLink href="/blog/" data-nav="blog">
+      日志
+    </HeaderLink>
+    <HeaderLink href="/about/" data-nav="about">
+      关于
+    </HeaderLink>
   </nav>
+  <div class="tools">
+    <select id="language" aria-label="界面语言">
+      <option value="zh-CN">简</option>
+      <option value="zh-TW">繁</option>
+      <option value="en">EN</option>
+    </select>
+    <button
+      class="glass-control"
+      id="theme-toggle"
+      type="button"
+      aria-label="切换深色模式"
+      aria-pressed="false"
+    >
+      <svg
+        class="moon"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.5"
+        aria-hidden="true"
+      >
+        <path d="M20.5 13a8.5 8.5 0 1 1-9.5-9.5A7 7 0 0 0 20.5 13Z" />
+      </svg>
+      <svg
+        class="sun"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.5"
+        aria-hidden="true"
+      >
+        <circle cx="12" cy="12" r="4" />
+        <path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5" />
+      </svg>
+    </button>
+  </div>
 </header>
 <script is:inline>
   (() => {
     const toggle = document.getElementById("theme-toggle");
-    const syncTheme = () => {
+    const sync = () => {
       const dark = document.documentElement.classList.contains("dark");
       toggle.setAttribute("aria-pressed", String(dark));
       toggle.setAttribute("aria-label", dark ? "切换浅色模式" : "切换深色模式");
     };
-    syncTheme();
+    sync();
     toggle.addEventListener("click", () => {
       document.documentElement.classList.toggle("dark");
       try {
@@ -82,137 +76,110 @@ import HeaderLink from "./HeaderLink.astro";
             : "light",
         );
       } catch {}
-      syncTheme();
+      sync();
     });
-    const dictionary = {
+    const words = {
       "zh-CN": { home: "首页", blog: "日志", about: "关于" },
       "zh-TW": { home: "首頁", blog: "日誌", about: "關於" },
       en: { home: "Home", blog: "Journal", about: "About" },
     };
     const select = document.getElementById("language");
     const update = (lang) => {
-      if (!dictionary[lang]) lang = "zh-CN";
+      if (!words[lang]) lang = "zh-CN";
       select.value = lang;
       document.documentElement.lang = lang;
       document
         .querySelectorAll("[data-nav]")
-        .forEach((el) => (el.textContent = dictionary[lang][el.dataset.nav]));
+        .forEach((el) => (el.textContent = words[lang][el.dataset.nav]));
       window.dispatchEvent(new CustomEvent("lang-changed", { detail: lang }));
       try {
         localStorage.setItem("site-lang", lang);
       } catch {}
     };
     select.addEventListener("change", () => update(select.value));
-    let initial = "zh-CN";
+    let lang = "zh-CN";
     try {
-      initial = localStorage.getItem("site-lang") || initial;
+      lang = localStorage.getItem("site-lang") || lang;
     } catch {}
-    update(initial);
+    update(lang);
   })();
 </script>
 <style>
   .site-header {
-    position: sticky;
-    top: 18px;
-    z-index: 100;
-    width: min(1200px, calc(100% - 48px));
-    margin: 22px auto 0;
-  }
-  .site-header nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 18px;
-    border-radius: 24px;
-    gap: 20px;
-  }
-  .brand {
-    display: flex;
-    align-items: center;
-    gap: 11px;
-    color: var(--text-main);
-    font-weight: 700;
-    letter-spacing: -0.025em;
-    text-decoration: none;
-    line-height: 1.3;
-  }
-  .brand-mark {
+    width: min(1320px, calc(100% - 80px));
+    margin: 30px auto 0;
     display: grid;
-    place-items: center;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 20px;
     position: relative;
-    width: 43px;
-    height: 43px;
-    border-radius: 15px;
-    background: linear-gradient(145deg, #7584e4, #4a54ab);
-    color: white;
-    font-size: 28px;
+    z-index: 10;
+  }
+  .wordmark {
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .wordmark span {
     font-weight: 400;
-    box-shadow:
-      inset 0 1px 2px #fff9,
-      0 4px 14px #5968bb33;
+    opacity: 0.55;
   }
-  .brand-mark span {
-    position: absolute;
-    right: 3px;
-    top: 3px;
-    font-size: 12px;
-  }
-  .brand-sub {
-    display: block;
-    font-size: 10px;
-    letter-spacing: 0.12em;
-    font-weight: 400;
-    color: var(--text-muted);
-    margin-top: 4px;
-  }
-  .internal-links {
+  nav {
     display: flex;
-    gap: 4px;
-    background: var(--soft);
-    padding: 4px;
-    border: 1px solid var(--line);
+    gap: 5px;
+    padding: 6px;
     border-radius: 99px;
   }
-  .internal-links :global(a) {
-    padding: 7px 20px;
+  nav :global(a) {
+    display: block;
+    min-width: 80px;
+    padding: 10px 22px;
     border-radius: 99px;
+    text-align: center;
+    text-decoration: none;
     font-size: 0.85rem;
     color: var(--text-muted);
+    transition:
+      background 0.3s,
+      color 0.3s;
   }
-  .internal-links :global(a.active) {
-    background: var(--card-bg);
-    box-shadow:
-      0 2px 6px #29385d12,
-      inset 0 1px 0 #ffffff60;
+  nav :global(a.active) {
+    background: var(--active);
     color: var(--text-main);
+    box-shadow:
+      inset 0 1px 1px #ffffff80,
+      0 1px 4px #143a5a0d;
+  }
+  nav :global(a:hover) {
+    color: var(--text-main);
+    background: var(--active);
   }
   .tools {
+    justify-self: end;
     display: flex;
-    gap: 10px;
     align-items: center;
+    gap: 16px;
   }
   .tools select {
-    border: 0;
+    width: 43px;
     background: transparent;
     color: var(--text-muted);
-    font-size: 0.78rem;
-    max-width: 68px;
+    border: 0;
+    font-size: 0.75rem;
     cursor: pointer;
   }
   .tools option {
     background: var(--bg);
-    color: var(--text-main);
   }
   #theme-toggle {
     display: grid;
     place-items: center;
-    border: 1px solid var(--card-border);
+    width: 45px;
+    height: 45px;
     border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    background: var(--soft);
     color: var(--text-main);
-    cursor: pointer;
   }
   svg {
     width: 19px;
@@ -227,34 +194,43 @@ import HeaderLink from "./HeaderLink.astro";
   :global(html.dark) .moon {
     display: none;
   }
-  @media (max-width: 700px) {
+  @media (max-width: 900px) {
+    .wordmark span {
+      display: none;
+    }
     .site-header {
-      width: calc(100% - 24px);
-      top: 10px;
-      margin-top: 12px;
+      width: calc(100% - 48px);
     }
-    .site-header nav {
-      flex-wrap: wrap;
-      gap: 12px;
-      padding: 12px;
-    }
-    .brand {
-      font-size: 0.9rem;
-    }
-    .brand-sub {
-      font-size: 9px;
-    }
-    .internal-links {
-      order: 3;
-      flex-basis: 100%;
-      justify-content: center;
-    }
-    .internal-links :global(a) {
-      padding: 6px 24px;
+    nav :global(a) {
+      min-width: 66px;
+      padding: 8px 16px;
     }
     .tools {
-      margin-left: auto;
-      gap: 4px;
+      gap: 8px;
+    }
+  }
+  @media (max-width: 600px) {
+    .site-header {
+      grid-template-columns: 1fr auto;
+      margin-top: 22px;
+      gap: 25px;
+    }
+    nav {
+      grid-column: 1/-1;
+      grid-row: 2;
+      justify-self: center;
+    }
+    nav :global(a) {
+      min-width: 86px;
+      padding: 10px 20px;
+    }
+    .tools {
+      grid-column: 2;
+      grid-row: 1;
+    }
+    #theme-toggle {
+      width: 40px;
+      height: 40px;
     }
   }
 </style>

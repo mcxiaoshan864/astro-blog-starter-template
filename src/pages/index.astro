@@ -2,12 +2,8 @@
 import BaseHead from "../components/BaseHead.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
-import PostCard from "../components/PostCard.astro";
+import PageLanguage from "../components/PageLanguage.astro";
 import { SITE_TITLE, SITE_DESCRIPTION } from "../consts";
-import { getCollection } from "astro:content";
-const posts = (await getCollection("blog")).sort(
-  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
-);
 ---
 
 <!doctype html>
@@ -17,493 +13,228 @@ const posts = (await getCollection("blog")).sort(
   </head>
   <body>
     <Header />
-    <main id="main">
-      <section class="hero glass">
-        <div class="hero-copy">
-          <div class="eyebrow">Welcome to my little corner</div>
-          <h1>
-            <span data-i18n="hello">你好，这里是</span>
-            <br />
-            <span class="name">
-              mcxiaoshan<span class="period">.</span>
+    <main id="main" class="home">
+      <div class="intro">
+        <p class="eyebrow">A personal space on the internet</p>
+        <h1>
+          mcxiaoshan<span>.</span>
+        </h1>
+        <p
+          class="headline"
+          data-en="Curious about the world. At my own pace."
+          data-tw="保持好奇，按自己的節奏。"
+        >
+          保持好奇，按自己的节奏。
+        </p>
+        <p
+          class="description"
+          data-en="A place for technology, everyday life, and whatever comes to mind."
+          data-tw="關於技術，關於日常，也關於偶爾冒出來的想法。"
+        >
+          关于技术，关于日常，也关于偶尔冒出来的想法。
+        </p>
+        <div class="actions">
+          <a class="button glass-control" href="/about/">
+            <span data-en="A little about me" data-tw="關於我">
+              关于我
             </span>
-          </h1>
-          <p class="hero-description" data-i18n="intro">
-            在数字世界里，留下一点自己的痕迹。
-            <br />
-            记录硬件、系统，以及每一次好奇心带来的折腾。
-          </p>
-          <div class="hero-actions">
-            <a href="/blog/" class="button primary">
-              <span data-i18n="read">翻开我的日志</span>
-              <span aria-hidden="true">↗</span>
-            </a>
-            <a href="/about/" class="button" data-i18n="about">
-              认识一下我
-            </a>
-          </div>
-          <div class="hero-note">
-            <span></span>
-            <span data-i18n="note">保持好奇 · 慢慢更新</span>
-          </div>
-        </div>
-        <div class="hero-art" aria-hidden="true">
-          <div class="orbit orbit-one"></div>
-          <div class="orbit orbit-two"></div>
-          <div class="orb">
-            <span>
-              m<span class="spark">✦</span>
-            </span>
-          </div>
-          <span class="floating-label label-one">⌘ &nbsp; Stay curious</span>
-          <span class="floating-label label-two">✧ &nbsp; Keep exploring</span>
-          <span class="art-caption">A LITTLE SPACE FOR BIG IDEAS</span>
-        </div>
-      </section>
-      <div class="interest-strip">
-        <span class="strip-label" data-i18n="interests">
-          好奇心的方向
-        </span>
-        <span>硬件探索</span>
-        <span>Android / ROM</span>
-        <span>Windows</span>
-        <span>生活碎片</span>
-        <span class="strip-star">✦</span>
-      </div>
-      <section aria-labelledby="latest">
-        <div class="section-heading">
-          <div>
-            <div class="eyebrow">The journal</div>
-            <h2 id="latest" data-i18n="latest">
-              最近的折腾
-            </h2>
-          </div>
-          <a href="/blog/" data-i18n="all">
-            所有日志 ↗
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              aria-hidden="true"
+            >
+              <path d="M5 12h14m-6-6 6 6-6 6" />
+            </svg>
+          </a>
+          <a
+            href="/blog/"
+            class="journal-link"
+            data-en="Visit the journal ↗"
+            data-tw="去日誌看看 ↗"
+          >
+            去日志看看 ↗
           </a>
         </div>
-        <div class="home-posts">
-          <div class="post-list">
-            {posts.slice(0, 2).map((post) => (
-              <PostCard post={post} />
-            ))}
-          </div>
-          <aside class="glass hello-card">
-            <span class="tiny-star">✳</span>
-            <h3 data-i18n="asideTitle">
-              不止是代码，
-              <br />
-              也是生活的存档。
-            </h3>
-            <p data-i18n="asideText">
-              有时是旧设备的新生，有时是一个问题的答案。把值得记住的过程，慢慢写在这里。
-            </p>
-            <a href="/about/" data-i18n="more">
-              关于这个小站 ↗
-            </a>
-            <span class="card-number">01 / PERSONAL SPACE</span>
-          </aside>
+      </div>
+      <div class="elsewhere">
+        <span class="elsewhere-label" data-en="ELSEWHERE" data-tw="在別處">
+          在别处
+        </span>
+        <div class="social-links">
+          <a
+            class="glass-control"
+            href="https://space.bilibili.com/3493093791763273"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Bilibili <span>↗</span>
+          </a>
+          <a
+            class="glass-control"
+            href="https://x.com/MXiaoshan68280"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            X <span>↗</span>
+          </a>
+          <a
+            class="glass-control"
+            href="https://github.com/mcxiaoshan864"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            GitHub <span>↗</span>
+          </a>
         </div>
-      </section>
-      <section class="closing glass">
-        <div>
-          <span class="eyebrow">Always a work in progress</span>
-          <h2 data-i18n="closing">世界很大，好奇心也是。</h2>
-        </div>
-        <a class="button" href="/rss.xml">
-          <span data-i18n="rss">订阅 RSS</span>
-          <span aria-hidden="true">↗</span>
-        </a>
-      </section>
+      </div>
     </main>
     <Footer />
-    <script is:inline>
-      (() => {
-        const copy = {
-          "zh-TW": {
-            hello: "你好，這裡是",
-            intro:
-              "在數位世界裡，留下一點自己的痕跡。\n記錄硬體、系統，以及每一次好奇心帶來的折騰。",
-            read: "翻開我的日誌",
-            about: "認識一下我",
-            note: "保持好奇 · 慢慢更新",
-            interests: "好奇心的方向",
-            latest: "最近的折騰",
-            all: "所有日誌 ↗",
-            asideTitle: "不只是程式碼，\n也是生活的存檔。",
-            asideText:
-              "有時是舊設備的新生，有時是一個問題的答案。把值得記住的過程，慢慢寫在這裡。",
-            more: "關於這個小站 ↗",
-            closing: "世界很大，好奇心也是。",
-            rss: "訂閱 RSS",
-          },
-          en: {
-            hello: "Hello, this is",
-            intro:
-              "A little trace of me in the digital world.\nHardware, systems, and adventures sparked by curiosity.",
-            read: "Explore the journal",
-            about: "A little about me",
-            note: "Stay curious · Keep creating",
-            interests: "Things I explore",
-            latest: "Latest explorations",
-            all: "All entries ↗",
-            asideTitle: "More than code.\nA journal of life.",
-            asideText:
-              "Sometimes an old device gets a new life. Sometimes a question finds its answer. This is where I keep the journey.",
-            more: "About this corner ↗",
-            closing: "A big world. An even bigger curiosity.",
-            rss: "Subscribe via RSS",
-          },
-        };
-        const nodes = [...document.querySelectorAll("[data-i18n]")];
-        const original = nodes.map((el) => el.innerText);
-        const update = (lang) =>
-          nodes.forEach((el, i) => {
-            el.innerText = copy[lang]?.[el.dataset.i18n] || original[i];
-          });
-        window.addEventListener("lang-changed", (e) => update(e.detail));
-        try {
-          update(localStorage.getItem("site-lang"));
-        } catch {}
-      })();
-    </script>
+    <PageLanguage />
   </body>
 </html>
 <style>
-  .hero {
-    display: grid;
-    grid-template-columns: 1.1fr 1fr;
-    min-height: 490px;
-    padding: 60px;
-    position: relative;
-    overflow: hidden;
-  }
-  .hero::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background: linear-gradient(120deg, #ffffff55, transparent 50%, #ffffff10);
-  }
-  .hero-copy {
-    position: relative;
-    z-index: 1;
-  }
-  .hero h1 {
-    margin-bottom: 22px;
-    font-weight: 500;
-    line-height: 1.23;
-    font-size: clamp(2rem, 4.3vw, 3.8rem);
-  }
-  .name {
-    font-weight: 700;
-    letter-spacing: -0.055em;
-  }
-  .period {
-    color: #777ed5;
-  }
-  .hero-description {
-    font-size: 0.95rem;
-    line-height: 1.9;
-    color: var(--text-muted);
-    white-space: pre-line;
-  }
-  .hero-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-top: 30px;
-  }
-  .hero-note {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    font-size: 0.7rem;
-    color: var(--text-muted);
-    margin-top: 36px;
-  }
-  .hero-note > span:first-child {
-    width: 5px;
-    height: 5px;
-    background: #63a991;
-    border-radius: 50%;
-  }
-  .hero-art {
-    position: relative;
-    display: grid;
-    place-items: center;
-    min-width: 0;
-  }
-  .orb {
-    position: relative;
-    width: 240px;
-    height: 260px;
-    border-radius: 43% 57% 61% 39% / 42% 40% 60% 58%;
-    background:
-      radial-gradient(at 27% 20%, #ffffffe6, transparent 43%),
-      radial-gradient(at 70% 80%, #7b8ad599, transparent 65%),
-      linear-gradient(130deg, #c6ddff99, #dfd8ffbb 50%, #b7ccfb99);
-    box-shadow:
-      inset 2px 4px 9px #fff,
-      inset -8px -10px 24px #778dc560,
-      16px 26px 44px -16px #7f83b466,
-      0 0 0 1px #fff9;
-    backdrop-filter: blur(4px);
-    transform: rotate(-15deg);
-    animation: morph 14s ease-in-out infinite alternate;
-    display: grid;
-    place-items: center;
-  }
-  .orb > span {
-    font-size: 120px;
-    font-weight: 700;
-    font-style: italic;
-    letter-spacing: -0.08em;
-    color: #ffffffb3;
-    text-shadow:
-      2px 3px 1px #7887be55,
-      -1px -1px 0 white;
-    position: relative;
-    transform: rotate(15deg);
-  }
-  .spark {
-    position: absolute;
-    top: 24px;
-    right: -27px;
-    font-size: 34px;
-    color: white;
-  }
-  .orbit {
-    position: absolute;
-    width: 360px;
-    height: 170px;
-    border: 1px solid var(--card-border);
-    border-radius: 50%;
-    transform: rotate(-32deg);
-    box-shadow: 0 1px 0 #7b88bc14;
-  }
-  .orbit-two {
-    width: 330px;
-    height: 330px;
-    transform: rotate(35deg);
-    opacity: 0.5;
-  }
-  .floating-label {
-    position: absolute;
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
-    box-shadow: var(--card-shadow);
-    backdrop-filter: blur(20px);
-    padding: 10px 18px;
-    border-radius: 15px;
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    white-space: nowrap;
-  }
-  .label-one {
-    top: 33px;
-    right: -10px;
-    transform: rotate(7deg);
-  }
-  .label-two {
-    bottom: 45px;
-    left: -12px;
-    transform: rotate(-7deg);
-  }
-  .art-caption {
-    position: absolute;
-    bottom: -10px;
-    font-size: 8px;
-    letter-spacing: 0.24em;
-    color: var(--text-muted);
-  }
-  .interest-strip {
-    display: flex;
-    align-items: center;
-    gap: 24px;
-    padding: 24px 10px;
-    border-bottom: 1px solid var(--line);
-    font-size: 0.78rem;
-    color: var(--text-muted);
-    flex-wrap: wrap;
-  }
-  .strip-label {
-    margin-right: auto;
-    font-size: 0.7rem;
-  }
-  .strip-star {
-    color: var(--accent);
-    margin-left: auto;
-  }
-  .home-posts {
-    display: grid;
-    grid-template-columns: 1.65fr 1fr;
-    gap: 24px;
-  }
-  .home-posts .post-list {
-    grid-template-columns: 1fr;
-  }
-  .hello-card {
-    padding: 36px;
+  .home {
+    min-height: calc(100svh - 183px);
     display: flex;
     flex-direction: column;
-    align-items: start;
+    justify-content: center;
+    padding-top: 95px;
+    padding-bottom: 40px;
   }
-  .tiny-star {
-    font-size: 40px;
-    color: #858cce;
-    line-height: 1;
-    margin-bottom: 35px;
+  .intro {
+    text-align: center;
+    padding-bottom: 80px;
   }
-  .hello-card h3 {
-    font-size: 1.5rem;
-    line-height: 1.5;
-    white-space: pre-line;
+  .intro .eyebrow {
+    font-size: 0.65rem;
+    letter-spacing: 0.28em;
+    margin-bottom: 32px;
+    opacity: 0.85;
   }
-  .hello-card p {
+  h1 {
+    font-size: clamp(3.6rem, 9vw, 7.2rem);
+    letter-spacing: -0.075em;
+    line-height: 1.05;
+    font-weight: 550;
+    margin: 0 0 24px;
+  }
+  h1 span {
+    color: #6489a4;
+  }
+  .headline {
+    font-size: clamp(1.2rem, 2.4vw, 1.65rem);
+    letter-spacing: 0.08em;
+    font-weight: 400;
+    margin-bottom: 16px;
+  }
+  .description {
     font-size: 0.9rem;
-    color: var(--text-muted);
     line-height: 1.9;
-  }
-  .hello-card a {
-    font-size: 0.85rem;
-    text-decoration: none;
-    margin-top: 16px;
-  }
-  .card-number {
-    margin-top: auto;
-    padding-top: 32px;
-    font-size: 0.6rem;
-    letter-spacing: 0.15em;
+    letter-spacing: 0.04em;
     color: var(--text-muted);
+    margin-bottom: 0;
   }
-  .closing {
+  .actions {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 20px;
-    padding: 32px 40px;
-    margin-top: 40px;
+    justify-content: center;
+    gap: 30px;
+    margin-top: 37px;
   }
-  .closing .eyebrow {
-    margin-bottom: 12px;
+  .actions svg {
+    width: 20px;
+    height: 20px;
+  }
+  .journal-link {
+    font-size: 0.8rem;
+    text-decoration: none;
+    color: var(--text-muted);
+  }
+  .journal-link:hover {
+    color: var(--text-main);
+  }
+  .elsewhere {
+    text-align: center;
+    margin-top: auto;
+  }
+  .elsewhere-label {
     font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    color: var(--text-muted);
   }
-  .closing h2 {
-    font-size: 1.45rem;
-    margin: 0;
+  .social-links {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 16px;
   }
-  .closing .button {
-    white-space: nowrap;
+  .social-links a {
+    min-width: 125px;
+    padding: 11px 20px;
+    border-radius: 99px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 28px;
+    text-decoration: none;
+    font-size: 0.75rem;
   }
-  @keyframes morph {
-    to {
-      transform: rotate(-5deg) translateY(-10px);
-      border-radius: 56% 44% 40% 60% / 50% 60% 40% 50%;
-    }
-  }
-  @media (max-width: 900px) {
-    .hero {
-      padding: 36px;
-      grid-template-columns: 1.2fr 0.8fr;
-    }
-    .orb {
-      width: 180px;
-      height: 210px;
-    }
-    .orbit {
-      width: 240px;
-    }
-    .orbit-two {
-      width: 240px;
-      height: 260px;
-    }
-    .floating-label {
-      font-size: 0.65rem;
-      padding: 8px 12px;
-    }
-    .label-one {
-      right: -16px;
-    }
-    .label-two {
-      left: 0;
-    }
-    .home-posts {
-      grid-template-columns: 1.4fr 1fr;
-    }
-    .hello-card {
-      padding: 25px;
-    }
+  .social-links a span {
+    opacity: 0.6;
   }
   @media (max-width: 700px) {
-    .hero {
-      grid-template-columns: 1fr;
-      padding: 30px 24px 20px;
+    .home {
+      min-height: calc(100svh - 236px);
+      padding-top: 60px;
+      padding-bottom: 28px;
     }
-    .hero h1 {
-      font-size: 2.4rem;
+    .intro {
+      padding-bottom: 70px;
     }
-    .hero-art {
-      height: 280px;
-      margin-top: 15px;
+    h1 {
+      font-size: clamp(2.8rem, 10.5vw, 4.5rem);
+      letter-spacing: -0.07em;
     }
-    .orb {
-      width: 175px;
-      height: 195px;
+    .intro .eyebrow {
+      font-size: 0.48rem;
+      letter-spacing: 0.2em;
+      margin-bottom: 26px;
     }
-    .orb > span {
-      font-size: 100px;
+    .headline {
+      font-size: 1.04rem;
+      letter-spacing: 0.025em;
     }
-    .label-one {
-      top: 25px;
-      right: 5px;
+    .description {
+      font-size: 0.76rem;
+      max-width: 255px;
+      margin: 0 auto;
     }
-    .label-two {
-      bottom: 45px;
-      left: 0;
+    .actions {
+      gap: 22px;
+      margin-top: 29px;
     }
-    .art-caption {
-      bottom: 5px;
+    .actions .button {
+      padding: 12px 22px;
+      gap: 24px;
+      font-size: 0.8rem;
+      min-height: 48px;
     }
-    .orbit {
-      width: 270px;
+    .journal-link {
+      font-size: 0.72rem;
     }
-    .orbit-two {
-      width: 235px;
-      height: 235px;
+    .social-links {
+      gap: 8px;
     }
-    .hero-note {
-      margin-top: 24px;
+    .social-links a {
+      min-width: 0;
+      gap: 24px;
+      padding: 10px 16px;
+      font-size: 0.7rem;
     }
-    .hero .eyebrow {
-      font-size: 0.58rem;
-    }
-    .interest-strip {
-      gap: 10px 17px;
-      padding: 22px 4px;
-    }
-    .strip-label {
-      flex-basis: 100%;
-    }
-    .strip-star {
-      display: none;
-    }
-    .home-posts {
-      grid-template-columns: 1fr;
-    }
-    .hello-card {
-      padding: 28px;
-    }
-    .tiny-star {
-      margin-bottom: 20px;
-    }
-    .closing {
-      padding: 25px;
-      align-items: start;
-      flex-direction: column;
-    }
-    .closing h2 {
-      font-size: 1.25rem;
+    .elsewhere-label {
+      font-size: 0.55rem;
     }
   }
 </style>

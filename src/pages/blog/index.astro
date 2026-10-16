@@ -3,6 +3,7 @@ import BaseHead from "../../components/BaseHead.astro";
 import Header from "../../components/Header.astro";
 import Footer from "../../components/Footer.astro";
 import PostCard from "../../components/PostCard.astro";
+import PageLanguage from "../../components/PageLanguage.astro";
 import { SITE_TITLE, SITE_DESCRIPTION } from "../../consts";
 import { getCollection } from "astro:content";
 const posts = (await getCollection("blog")).sort(
@@ -17,20 +18,68 @@ const posts = (await getCollection("blog")).sort(
   </head>
   <body>
     <Header />
-    <main id="main">
+    <main id="main" class="journal">
       <div class="page-heading">
-        <div class="eyebrow">
-          The journal / {String(posts.length).padStart(2, "0")} entries
-        </div>
-        <h1>折腾，值得记录。</h1>
-        <p>硬件、系统与生活。这里存放着一路探索留下的痕迹。</p>
+        <p class="eyebrow">Journal / {String(posts.length).padStart(2, "0")}</p>
+        <h1 data-en="A few words, now and then." data-tw="偶爾，寫點什麼。">
+          偶尔，写点什么。
+        </h1>
+        <p
+          data-en="Notes, thoughts, and small discoveries along the way."
+          data-tw="記錄走過的路，和路上那些有意思的小事。"
+        >
+          记录走过的路，和路上那些有意思的小事。
+        </p>
       </div>
-      <section class="post-list" aria-label="所有日志">
-        {posts.map((post) => (
-          <PostCard post={post} />
-        ))}
-      </section>
+      {posts.length ? (
+        <section class="post-list" aria-label="所有日志">
+          {posts.map((post) => (
+            <PostCard post={post} />
+          ))}
+        </section>
+      ) : (
+        <section class="empty-state">
+          <svg
+            viewBox="0 0 40 40"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.2"
+            aria-hidden="true"
+          >
+            <rect x="9" y="5" width="25" height="30" rx="4" />
+            <path d="M5 13h8M5 21h8M5 29h8m6-16h9m-9 7h9" />
+          </svg>
+          <h2 data-en="A fresh page." data-tw="新的一頁，還沒落筆。">
+            新的一页，还没落笔。
+          </h2>
+          <p
+            data-en="No entries yet. Come back when something new takes shape."
+            data-tw="這裡暫時沒有文章。等有了想分享的故事，再慢慢寫下來。"
+          >
+            这里暂时没有文章。等有了想分享的故事，再慢慢写下来。
+          </p>
+          <a
+            class="button glass-control"
+            href="/"
+            data-en="Back home ↗"
+            data-tw="回到首頁 ↗"
+          >
+            回到首页 ↗
+          </a>
+        </section>
+      )}
     </main>
     <Footer />
+    <PageLanguage />
   </body>
 </html>
+<style>
+  .journal {
+    min-height: calc(100svh - 190px);
+  }
+  @media (max-width: 700px) {
+    .journal {
+      min-height: calc(100svh - 240px);
+    }
+  }
+</style>

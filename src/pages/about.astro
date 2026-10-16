@@ -1,44 +1,193 @@
 ---
-import Layout from '../layouts/BlogPost.astro';
+import BaseHead from "../components/BaseHead.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import PageLanguage from "../components/PageLanguage.astro";
+import { SITE_TITLE } from "../consts";
 ---
 
-<Layout
-	title="关于我 / About Me"
-	description="赛博荒原上的折腾记录，一个硬件对线与系统强刷的考古现场。"
-	pubDate={new Date('2026-06-20')}
-	heroImage="/blog-placeholder-about.jpg"
->
-	<p>
-		欢迎来到控制台。这里是一个常年沉迷于硬件对线、系统强刷以及技术考古的极客阵地。
-	</p>
-
-	<p>
-		我喜欢把一些充满时代眼泪的老机器重新推倒重刷，在各种底层分区、OEM 锁和玄学 Bug 之间跟系统反复对线。对我来说，把一堆冷冰冰的硬件和乱成一团的代码驯服成自己想要的样子，就是最纯粹的乐趣。
-	</p>
-
-	<h3 style="margin-top: 2.5rem; color: var(--text-main);">🔧 折腾路线与装备库存</h3>
-	<p>目前大本营控制台主要涵盖以下折腾方向：</p>
-	<ul>
-		<li>
-			<span><b>硬件对线：</b> 专注于多端设备调优，折腾 Windows 11 性能极限与图形控制器的流畅度压榨。</span>
-		</li>
-		<li>
-			<span><b>考古强刷：</b> 收集和研究早期的经典移动设备，热衷于解 OEM 锁、挖煤救砖以及物理双清重置。</span>
-		</li>
-		<li>
-			<span><b>网络路由：</b> 边缘网络计算、网络代理分流以及全栈网络控制台的无损搭建。</span>
-		</li>
-		<li>
-			<span><b>赛博折腾：</b> 从零手搓各种全圆胶囊药丸样式的液态玻璃前端，主打一个极致的视觉强迫症。</span>
-		</li>
-	</ul>
-
-	<h3 style="margin-top: 2.5rem; color: var(--text-main);">📡 呼叫信号</h3>
-	<p>
-		如果你也是个喜欢物理重开、删库再来、不折腾不舒服的硬核玩家，欢迎通过头栏的 <b>B站、X（Twitter）以及 GitHub</b> 链接物理空降我的个人主页进行赛博催更。
-	</p>
-	
-	<p>
-		大后方底子清白，新世界大门常开。祝你今晚折腾得开心！
-	</p>
-</Layout>
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <BaseHead
+      title={`关于我 · ${SITE_TITLE}`}
+      description="我是 mcxiaoshan。这是我在互联网上留给自己的一小块空间。"
+    />
+  </head>
+  <body>
+    <Header />
+    <main id="main" class="about">
+      <div class="page-heading">
+        <p class="eyebrow">A little about me</p>
+        <h1 data-en="Hello, nice to meet you." data-tw="你好，很高興遇見你。">
+          你好，很高兴遇见你。
+        </h1>
+        <p
+          class="lead"
+          data-en="I'm mcxiaoshan. Welcome to my little corner of the internet."
+          data-tw="我是 mcxiaoshan，歡迎來到我的個人小站。"
+        >
+          我是 mcxiaoshan，欢迎来到我的个人小站。
+        </p>
+      </div>
+      <div class="about-body">
+        <section>
+          <span class="section-index">01 / ME</span>
+          <div>
+            <h2 data-en="Curiosity comes first." data-tw="好奇，是一個開始。">
+              好奇，是一个开始。
+            </h2>
+            <p
+              data-en="I like exploring technology, trying things on my computer and phone, and figuring out how they work. Some attempts succeed; others leave me with a new question."
+              data-tw="我喜歡探索技術，也喜歡在電腦和手機上試些新東西，弄明白它們是怎麼運作的。有些嘗試很順利，有些會留下一個新的問題。"
+            >
+              我喜欢探索技术，也喜欢在电脑和手机上试些新东西，弄明白它们是怎么运作的。有些尝试很顺利，有些会留下一个新的问题。
+            </p>
+            <p
+              data-en="I enjoy the process: an unfamiliar idea slowly making sense, or a small change making something feel better to use."
+              data-tw="讓我感到有趣的，是一個陌生的概念慢慢變得清晰，或是一個小小的改動，讓日常使用多了一點順手。"
+            >
+              让我感到有趣的，是一个陌生的概念慢慢变得清晰，或是一个小小的改动，让日常使用多了一点顺手。
+            </p>
+          </div>
+        </section>
+        <section>
+          <span class="section-index">02 / THIS SITE</span>
+          <div>
+            <h2
+              data-en="A place to put things."
+              data-tw="給想法，一個落腳的地方。"
+            >
+              给想法，一个落脚的地方。
+            </h2>
+            <p
+              data-en="This site is a small space of my own. It can hold notes from an experiment, a thought from an ordinary day, or something I don't want to forget."
+              data-tw="這個網站，是我留給自己的一小塊空間。它可以放下一次嘗試的記錄、一個普通日子裡的念頭，或是一件不想忘記的小事。"
+            >
+              这个网站，是我留给自己的一小块空间。它可以放下一次尝试的记录、一个普通日子里的念头，或是一件不想忘记的小事。
+            </p>
+            <p
+              data-en="There is no fixed publishing schedule. I'll write when I have something to share, and let the rest grow slowly."
+              data-tw="不設定更新的期限。想寫的時候就寫一點，剩下的，慢慢來。"
+            >
+              不设定更新的期限。想写的时候就写一点，剩下的，慢慢来。
+            </p>
+          </div>
+        </section>
+        <section>
+          <span class="section-index">03 / CONNECT</span>
+          <div>
+            <h2 data-en="See you elsewhere." data-tw="也可以，在別處遇見。">
+              也可以，在别处遇见。
+            </h2>
+            <p
+              data-en="Thanks for stopping by. You can also find me here:"
+              data-tw="謝謝你來逛逛。你也可以透過這些連結找到我："
+            >
+              谢谢你来逛逛。你也可以通过这些链接找到我：
+            </p>
+            <div class="contact-links">
+              <a
+                class="glass-control button"
+                href="https://space.bilibili.com/3493093791763273"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Bilibili ↗
+              </a>
+              <a
+                class="glass-control button"
+                href="https://x.com/MXiaoshan68280"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                X ↗
+              </a>
+              <a
+                class="glass-control button"
+                href="https://github.com/mcxiaoshan864"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                GitHub ↗
+              </a>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+    <Footer />
+    <PageLanguage />
+  </body>
+</html>
+<style>
+  .about {
+    max-width: 960px;
+  }
+  .page-heading {
+    padding-bottom: 65px;
+  }
+  .page-heading h1 {
+    font-size: clamp(2.3rem, 5.4vw, 4.1rem);
+  }
+  .page-heading .lead {
+    font-size: 1.06rem;
+  }
+  .about-body {
+    max-width: 800px;
+  }
+  .about-body section {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 30px;
+    padding: 36px 0;
+    border-top: 1px solid var(--line);
+  }
+  .section-index {
+    font-size: 0.6rem;
+    letter-spacing: 0.13em;
+    padding-top: 7px;
+    color: var(--text-muted);
+  }
+  .about-body h2 {
+    font-size: 1.5rem;
+    letter-spacing: -0.03em;
+    margin-bottom: 24px;
+  }
+  .about-body p {
+    font-size: 0.95rem;
+    line-height: 2;
+    color: var(--text-muted);
+    margin-bottom: 17px;
+  }
+  .contact-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 25px;
+  }
+  .contact-links .button {
+    font-size: 0.75rem;
+    min-height: 44px;
+    padding: 10px 22px;
+  }
+  @media (max-width: 700px) {
+    .about-body section {
+      grid-template-columns: 1fr;
+      gap: 18px;
+      padding: 28px 0;
+    }
+    .page-heading {
+      padding-bottom: 35px;
+    }
+    .about-body h2 {
+      font-size: 1.35rem;
+    }
+    .about-body p {
+      font-size: 0.9rem;
+    }
+    .page-heading .lead {
+      font-size: 0.9rem;
+    }
+  }
+</style>

@@ -3,103 +3,58 @@ const year = new Date().getFullYear();
 ---
 
 <footer>
-  <div class="footer-top">
-    <a class="footer-brand" href="/">
-      mcxiaoshan <span>✦</span>
-    </a>
-    <p>保持好奇，继续折腾。</p>
-    <div class="socials">
-      <a
-        href="https://space.bilibili.com/3493093791763273"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        Bilibili ↗
-      </a>
-      <a
-        href="https://x.com/MXiaoshan68280"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        X ↗
-      </a>
-      <a
-        href="https://github.com/mcxiaoshan864/astro-blog-starter-template"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        GitHub ↗
-      </a>
-      <a href="/rss.xml">RSS ↗</a>
-    </div>
-  </div>
-  <div class="footer-bottom">
-    <span>© {year} mcxiaoshan</span>
-    <span>Built with Astro · Served by Cloudflare</span>
-  </div>
+  <span>© {year} mcxiaoshan</span>
+  <a href="/rss.xml">RSS ↗</a>
+  <span class="site-note">随心记录，自由生长。</span>
 </footer>
+<script is:inline>
+  // Highlights follow the pointer only while interacting; no permanent render loop.
+  if (
+    matchMedia("(hover: hover)").matches &&
+    !matchMedia("(prefers-reduced-motion: reduce)").matches
+  ) {
+    document.querySelectorAll(".glass-control").forEach((el) => {
+      el.addEventListener("pointermove", (e) => {
+        const r = el.getBoundingClientRect();
+        el.style.setProperty(
+          "--light-x",
+          ((e.clientX - r.left) / r.width) * 100 + "%",
+        );
+        el.style.setProperty(
+          "--light-y",
+          ((e.clientY - r.top) / r.height) * 100 + "%",
+        );
+      });
+      el.addEventListener("pointerleave", () => {
+        el.style.removeProperty("--light-x");
+        el.style.removeProperty("--light-y");
+      });
+    });
+  }
+</script>
 <style>
   footer {
-    width: min(1120px, calc(100% - 64px));
+    width: min(1320px, calc(100% - 80px));
     margin: auto;
-    padding: 30px 0 24px;
-    border-top: 1px solid var(--line);
-    font-size: 0.8rem;
-    color: var(--text-muted);
-  }
-  .footer-top {
     display: flex;
+    gap: 28px;
     align-items: center;
-    gap: 24px;
-  }
-  .footer-brand {
-    font-size: 1rem;
-    font-weight: 700;
-    letter-spacing: -0.03em;
-    color: var(--text-main);
-    text-decoration: none;
-  }
-  .footer-brand span {
-    color: var(--accent);
-  }
-  p {
-    margin: 0;
-  }
-  .socials {
-    margin-left: auto;
-    display: flex;
-    gap: 20px;
-  }
-  .socials a {
+    padding: 30px 0;
+    font-size: 0.68rem;
+    letter-spacing: 0.03em;
     color: var(--text-muted);
+  }
+  footer a {
     text-decoration: none;
   }
-  .socials a:hover {
-    color: var(--accent);
-  }
-  .footer-bottom {
-    display: flex;
-    justify-content: space-between;
-    gap: 16px;
-    font-size: 0.7rem;
-    opacity: 0.8;
-    margin-top: 28px;
+  .site-note {
+    margin-left: auto;
   }
   @media (max-width: 700px) {
     footer {
-      width: calc(100% - 32px);
-    }
-    .footer-top {
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-    .socials {
-      width: 100%;
-      margin: 8px 0;
-    }
-    .footer-bottom {
-      flex-direction: column;
-      gap: 5px;
+      width: calc(100% - 48px);
+      gap: 18px;
+      font-size: 0.6rem;
     }
   }
 </style>
