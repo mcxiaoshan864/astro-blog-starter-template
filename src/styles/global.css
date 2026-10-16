@@ -34,6 +34,7 @@ html.dark {
 html {
   min-width: 320px;
   scroll-behavior: smooth;
+  scrollbar-gutter: stable;
 }
 body {
   margin: 0;
@@ -335,6 +336,7 @@ html.theme-transitioning *,
 html.theme-transitioning *::before,
 html.theme-transitioning *::after {
   transition: none !important;
+  view-transition-name: none !important;
 }
 html.theme-transitioning::view-transition {
   pointer-events: none;
@@ -354,4 +356,82 @@ html.theme-transitioning::view-transition-old(root) {
 html.theme-transitioning::view-transition-new(root) {
   z-index: 2;
   clip-path: ellipse(0px 0px at var(--theme-x) var(--theme-y));
+}
+
+/* A feathered leading edge removes the hard cut between the two themes. */
+html.theme-soft-mask::view-transition-new(root) {
+  -webkit-mask-image: radial-gradient(
+    ellipse var(--theme-rx) var(--theme-ry) at var(--theme-x) var(--theme-y),
+    #000 88%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    ellipse var(--theme-rx) var(--theme-ry) at var(--theme-x) var(--theme-y),
+    #000 88%,
+    transparent 100%
+  );
+}
+
+/* Native page transitions preserve real links, history, and browser navigation. */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+  main {
+    view-transition-name: page-content;
+  }
+}
+html:not(.theme-transitioning)::view-transition-old(root),
+html:not(.theme-transitioning)::view-transition-new(root) {
+  animation-duration: 160ms;
+}
+html:not(.theme-transitioning)::view-transition-group(site-nav),
+html:not(.theme-transitioning)::view-transition-group(nav-indicator),
+html:not(.theme-transitioning)::view-transition-group(nav-labels) {
+  animation-duration: 380ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+html:not(.theme-transitioning)::view-transition-group(site-nav) {
+  z-index: 10;
+}
+html:not(.theme-transitioning)::view-transition-group(nav-indicator) {
+  z-index: 11;
+}
+html:not(.theme-transitioning)::view-transition-group(nav-labels) {
+  z-index: 12;
+}
+html:not(.theme-transitioning)::view-transition-old(site-nav),
+html:not(.theme-transitioning)::view-transition-new(site-nav),
+html:not(.theme-transitioning)::view-transition-old(nav-indicator),
+html:not(.theme-transitioning)::view-transition-new(nav-indicator),
+html:not(.theme-transitioning)::view-transition-old(nav-labels),
+html:not(.theme-transitioning)::view-transition-new(nav-labels) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+html:not(.theme-transitioning)::view-transition-group(page-content) {
+  animation-duration: 280ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+html:not(.theme-transitioning)::view-transition-old(page-content) {
+  animation: content-out 140ms ease-out both;
+}
+html:not(.theme-transitioning)::view-transition-new(page-content) {
+  animation: content-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes content-out {
+  to {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+}
+@keyframes content-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

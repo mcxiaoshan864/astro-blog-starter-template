@@ -1,5 +1,5 @@
 const NEW_VIEW = "::view-transition-new(root)";
-const DURATION = 860;
+const DURATION = 1000;
 
 /** A wide, falling reveal: horizontal spread leads the downward flow. */
 export function waterfallFrames(
@@ -8,17 +8,43 @@ export function waterfallFrames(
   width: number,
   height: number,
 ): Keyframe[] {
-  const reachX = Math.max(x, width - x, 1) * 1.6;
-  const reachY = Math.max(y, height - y, 1) * 1.6;
-  return Array.from({ length: 17 }, (_, index) => {
-    const progress = index / 16;
-    const rx = reachX * Math.pow(progress, 0.6);
-    const ry = reachY * Math.pow(progress, 1.12);
+  const reachX = Math.max(x, width - x, 1) * 1.8;
+  const reachY = Math.max(y, height - y, 1) * 1.8;
+  return Array.from({ length: 33 }, (_, index) => {
+    const progress = index / 32;
+    const spread = 1 - (1 - progress) ** 2;
+    const flow = progress * progress * (3 - 2 * progress);
+    const rx = reachX * spread;
+    const ry = reachY * flow;
     return {
       offset: progress,
+      "--theme-rx": `${rx.toFixed(2)}px`,
+      "--theme-ry": `${ry.toFixed(2)}px`,
       clipPath: `ellipse(${rx.toFixed(2)}px ${ry.toFixed(2)}px at ${x.toFixed(2)}px ${y.toFixed(2)}px)`,
     };
   });
+}
+
+/** Registered lengths let the feathered mask interpolate instead of jumping. */
+function enableSoftMask(win: Window & typeof globalThis): boolean {
+  if (
+    typeof win.CSS?.registerProperty !== "function" ||
+    !win.CSS.supports("mask-image", "radial-gradient(black, transparent)")
+  )
+    return false;
+  try {
+    for (const name of ["--theme-rx", "--theme-ry"]) {
+      win.CSS.registerProperty({
+        name,
+        syntax: "<length>",
+        inherits: false,
+        initialValue: "0px",
+      });
+    }
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export function initThemeToggle(doc: Document = document): void {
@@ -28,6 +54,7 @@ export function initThemeToggle(doc: Document = document): void {
   toggle.dataset.themeBound = "true";
 
   const root = doc.documentElement;
+  const softMask = enableSoftMask(win);
   const motion = win.matchMedia("(prefers-reduced-motion: reduce)");
   let requestedDark = root.classList.contains("dark");
   let running = false;
@@ -108,6 +135,7 @@ export function initThemeToggle(doc: Document = document): void {
     root.style.setProperty("--theme-x", `${x}px`);
     root.style.setProperty("--theme-y", `${y}px`);
     root.classList.add("theme-transitioning");
+    root.classList.toggle("theme-soft-mask", softMask);
     toggle.setAttribute("aria-busy", "true");
 
     // A lost frame or a backgrounded tab must never leave an invisible overlay.
@@ -126,7 +154,7 @@ export function initThemeToggle(doc: Document = document): void {
       } else {
         const animation = root.animate(waterfallFrames(x, y, width, height), {
           duration: DURATION,
-          easing: "cubic-bezier(0.35, 0, 0.2, 1)",
+          easing: "linear",
           fill: "both",
           pseudoElement: NEW_VIEW,
         });
@@ -154,6 +182,7 @@ export function initThemeToggle(doc: Document = document): void {
       apply();
       state.animation?.cancel();
       root.classList.remove("theme-transitioning");
+      root.classList.remove("theme-soft-mask");
       root.style.removeProperty("--theme-x");
       root.style.removeProperty("--theme-y");
       toggle.removeAttribute("aria-busy");

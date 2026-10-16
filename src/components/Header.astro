@@ -1,5 +1,10 @@
 ---
 import HeaderLink from "./HeaderLink.astro";
+const activeIndex = Astro.url.pathname.startsWith("/blog")
+  ? 1
+  : Astro.url.pathname.startsWith("/about")
+    ? 2
+    : 0;
 ---
 
 <a class="skip-link" href="#main">
@@ -9,16 +14,23 @@ import HeaderLink from "./HeaderLink.astro";
   <a class="wordmark" href="/">
     mcxiaoshan<span>.ccwu.cc</span>
   </a>
-  <nav class="glass-control" aria-label="主导航">
-    <HeaderLink href="/" data-nav="home">
-      首页
-    </HeaderLink>
-    <HeaderLink href="/blog/" data-nav="blog">
-      日志
-    </HeaderLink>
-    <HeaderLink href="/about/" data-nav="about">
-      关于
-    </HeaderLink>
+  <nav
+    class="glass-control"
+    aria-label="主导航"
+    style={`--nav-index: ${activeIndex}`}
+  >
+    <span class="nav-indicator" aria-hidden="true"></span>
+    <div class="nav-links">
+      <HeaderLink href="/" data-nav="home">
+        首页
+      </HeaderLink>
+      <HeaderLink href="/blog/" data-nav="blog">
+        日志
+      </HeaderLink>
+      <HeaderLink href="/about/" data-nav="about">
+        关于
+      </HeaderLink>
+    </div>
   </nav>
   <div class="tools">
     <select id="language" aria-label="界面语言">
@@ -112,10 +124,32 @@ import HeaderLink from "./HeaderLink.astro";
     opacity: 0.55;
   }
   nav {
-    display: flex;
-    gap: 5px;
     padding: 6px;
     border-radius: 99px;
+    view-transition-name: site-nav;
+  }
+  .nav-links {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 5px;
+    position: relative;
+    z-index: 1;
+    view-transition-name: nav-labels;
+  }
+  .nav-indicator {
+    position: absolute;
+    top: 6px;
+    bottom: 6px;
+    left: 6px;
+    width: calc((100% - 22px) / 3);
+    transform: translateX(calc(var(--nav-index) * (100% + 5px)));
+    border-radius: 99px;
+    background: var(--active);
+    box-shadow:
+      inset 0 1px 1px #ffffff80,
+      0 1px 4px #143a5a0d;
+    pointer-events: none;
+    view-transition-name: nav-indicator;
   }
   nav :global(a) {
     display: block;
@@ -131,13 +165,9 @@ import HeaderLink from "./HeaderLink.astro";
       color 0.3s;
   }
   nav :global(a.active) {
-    background: var(--active);
     color: var(--text-main);
-    box-shadow:
-      inset 0 1px 1px #ffffff80,
-      0 1px 4px #143a5a0d;
   }
-  nav :global(a:hover) {
+  nav :global(a:not(.active):hover) {
     color: var(--text-main);
     background: var(--active);
   }
