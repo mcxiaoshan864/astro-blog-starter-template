@@ -5,8 +5,8 @@ declare namespace App {
 }
 
 interface Env {
+  TURNSTILE_SECRET?: string;
   ADMIN_AUTH?: string;
-  ADMIN_LOGIN_LIMITER?: import("./server/admin-auth").AuthEnvironment["ADMIN_LOGIN_LIMITER"];
 }
 
 declare namespace App {

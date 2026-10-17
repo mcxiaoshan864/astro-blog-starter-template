@@ -10,6 +10,8 @@
 		"directory": "./dist",
 		"binding": "ASSETS",
 		"run_worker_first": [
+			"/api/guestbook",
+			"/api/guestbook/*",
 			"/admin",
 			"/admin/*"
 		]
@@ -18,7 +20,23 @@
 		"enabled": true
 	},
 	"upload_source_maps": true,
+	"vars": {
+		"TURNSTILE_HOSTNAMES": "mcxiaoshan.ccwu.cc"
+	},
+	"d1_databases": [
+		{
+			"binding": "GUESTBOOK_DB",
+			"database_name": "mcxiaoshan-guestbook",
+			"database_id": "243328e2-c468-43a2-981d-ca56be379419",
+			"migrations_dir": "migrations"
+		}
+	],
 	"ratelimits": [
+		{
+			"name": "GUESTBOOK_LIMITER",
+			"namespace_id": "2026101801",
+			"simple": { "limit": 3, "period": 60 }
+		},
 		{
 			"name": "ADMIN_LOGIN_LIMITER",
 			"namespace_id": "2026101701",

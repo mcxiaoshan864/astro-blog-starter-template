@@ -16,7 +16,8 @@ const expiry = new Intl.DateTimeFormat("zh-CN", { timeZone: "Asia/Shanghai", mon
     <div><dt>身份</dt><dd>唯一管理员</dd></div>
     <div><dt>本次登录有效至</dt><dd>{expiry}（北京时间）</dd></div>
   </dl>
-  <div class="notice"><strong>登录已经准备好了。</strong><br />这里先留一张空桌子，之后可以接上留言审核与回复。</div>
+  <a class="button glass-control submit" href="/admin/guestbook/">留言管理 <span aria-hidden="true">↗</span></a>
+  <p class="hint">查看待审核留言，公开、回复或删除。</p>
   <form method="POST" action="/admin/logout/">
     <button class="button glass-control submit" type="submit">退出登录 <span aria-hidden="true">↗</span></button>
   </form>

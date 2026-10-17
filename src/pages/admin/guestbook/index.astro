@@ -1,0 +1,93 @@
+---
+export const prerender = false;
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { cursorValue, type AdminMessage } from '../../../server/guestbook';
+if (!Astro.locals.adminSession) return Astro.redirect('/admin/login/', 303);
+const requested = Astro.url.searchParams.get('filter');
+const filter = requested === 'published' || requested === 'all' ? requested : 'pending';
+let messages: AdminMessage[] = [];
+let counts = { pending: 0, published: 0 };
+let unavailable = false;
+let nextCursor: string | null = null;
+try {
+  const db = Astro.locals.runtime.env.GUESTBOOK_DB;
+  if (!db) throw new Error('Database unavailable');
+  const cursor = cursorValue(Astro.url.searchParams.get('cursor'));
+  const countRows = await db.prepare('SELECT status, COUNT(*) AS count FROM guestbook_messages GROUP BY status').all<{status: 'pending' | 'published'; count: number}>();
+  for (const row of countRows.results) counts[row.status] = row.count;
+  const statement = filter === 'all'
+    ? db.prepare('SELECT * FROM guestbook_messages WHERE id < ? ORDER BY id DESC LIMIT 21').bind(cursor)
+    : db.prepare('SELECT * FROM guestbook_messages WHERE status = ? AND id < ? ORDER BY id DESC LIMIT 21').bind(filter, cursor);
+  const rows = await statement.all<AdminMessage>();
+  messages = rows.results.slice(0, 20);
+  nextCursor = rows.results.length > 20 ? String(messages[19].id) : null;
+} catch { unavailable = true; Astro.response.status = 503; }
+const date = (timestamp: number) => new Intl.DateTimeFormat('zh-CN', {timeZone:'Asia/Shanghai', dateStyle:'medium', timeStyle:'short'}).format(timestamp * 1000);
+const error = Astro.url.searchParams.has('error');
+---
+<AdminLayout title="留言管理" wide>
+  <a class="back" href="/admin/">← 站长空间</a>
+  <p class="eyebrow">Words left behind</p>
+  <h1>留言管理</h1>
+  <p class="intro">每一句来访，都由你决定是否公开。</p>
+  <nav class="filters" aria-label="留言筛选">
+    <a class:list={['glass-control', {active: filter === 'pending'}]} aria-current={filter === 'pending' ? 'page' : undefined} href="/admin/guestbook/">待审核 · {counts.pending}</a>
+    <a class:list={['glass-control', {active: filter === 'published'}]} aria-current={filter === 'published' ? 'page' : undefined} href="?filter=published">已公开 · {counts.published}</a>
+    <a class:list={['glass-control', {active: filter === 'all'}]} aria-current={filter === 'all' ? 'page' : undefined} href="?filter=all">全部</a>
+  </nav>
+  {Astro.url.searchParams.has('saved') && <p class="notice" role="status">已保存。</p>}
+  {error && <p class="notice error" role="alert">操作未完成，留言可能已被删除，或服务暂时不可用。请刷新后重试。</p>}
+  {unavailable ? <p class="notice error" role="alert">暂时无法读取留言，请稍后刷新。</p> : messages.length === 0 ? <div class="empty"><p>{filter === 'pending' ? '暂时没有待审核的留言。' : '这里还没有留言。'}</p><a href="/about/#guestbook">查看公开留言板 ↗</a></div> : (
+    <div class="messages">
+      {messages.map(entry => <article class="message">
+        <header><strong>{entry.nickname}</strong><span class:list={['badge', {published:entry.status === 'published'}]}>{entry.status === 'published' ? '已公开' : '待审核'}</span></header>
+        <time datetime={new Date(entry.created_at * 1000).toISOString()}>{date(entry.created_at)} · #{entry.id}</time>
+        <p class="content">{entry.message}</p>
+        <div class="actions">
+          <form action="/admin/guestbook/action" method="POST">
+            <input type="hidden" name="id" value={entry.id} />
+            <button class="button glass-control" name="action" value={entry.status === 'published' ? 'hide' : 'publish'}>{entry.status === 'published' ? '撤回公开' : '审核通过'}</button>
+          </form>
+          <details class="delete"><summary>删除</summary><form action="/admin/guestbook/action" method="POST"><input type="hidden" name="id" value={entry.id} /><p>删除后无法恢复。</p><button class="button glass-control danger" name="action" value="delete">确认删除这条留言</button></form></details>
+        </div>
+        <details class="reply" open={!!entry.reply}>
+          <summary>{entry.reply ? '编辑站长回复' : '回复这条留言'}</summary>
+          <form action="/admin/guestbook/action" method="POST">
+            <input type="hidden" name="id" value={entry.id} />
+            <label for={`reply-${entry.id}`}>站长回复 <span>最多 2000 字，留空保存可移除回复</span></label>
+            <textarea id={`reply-${entry.id}`} name="reply" rows="4" maxlength="4000">{entry.reply}</textarea>
+            <button class="button glass-control" name="action" value="reply">保存回复</button>
+            {entry.status === 'pending' && <p class="hint">回复不会自动公开这条留言，还需点击“审核通过”。</p>}
+          </form>
+        </details>
+      </article>)}
+    </div>
+  )}
+  {nextCursor && <a class="button glass-control next" href={`?filter=${filter}&cursor=${nextCursor}`}>更早的留言 ↓</a>}
+  {Astro.url.searchParams.has('cursor') && <a class="back" href={`?filter=${filter}`}>回到最新留言 ↑</a>}
+</AdminLayout>
+<style>
+  .back { display: inline-block; color: var(--text-muted); font-size: .78rem; text-decoration: none; margin-bottom: 26px; }
+  .filters { display:flex; flex-wrap:wrap; gap:8px; margin:28px 0; }
+  .filters a { border-radius:999px; padding:10px 16px; text-decoration:none; font-size:.75rem; }
+  .filters .active { box-shadow:inset 0 0 0 1px var(--accent); color:var(--accent); }
+  .empty { padding:24px 0; color:var(--text-muted); font-size:.85rem; }
+  .empty a { display:inline-block; margin-top:14px; }
+  .message { padding:26px 0; border-top:1px solid var(--line); }
+  .message header { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+  .message strong { font-size:.95rem; overflow-wrap:anywhere; }
+  .badge { flex-shrink:0; padding:4px 10px; border-radius:999px; font-size:.65rem; color:var(--text-muted); background:var(--glass); border:1px solid var(--line); }
+  .badge.published { color:var(--accent); }
+  time { display:block; margin:8px 0 18px; color:var(--text-muted); font-size:.7rem; }
+  .content { white-space:pre-wrap; overflow-wrap:anywhere; font-size:.9rem; line-height:1.9; margin-bottom:20px; }
+  .actions { display:flex; align-items:flex-start; gap:18px; flex-wrap:wrap; }
+  .button { font-size:.75rem; min-height:42px; padding:10px 18px; }
+  summary { cursor:pointer; color:var(--text-muted); font-size:.78rem; padding:12px 0; }
+  .delete p { font-size:.75rem; color:var(--text-muted); margin:5px 0 12px; }
+  .danger { color:#a54141; }
+  .reply { margin-top:10px; }
+  .reply label span { display:block; color:var(--text-muted); font-size:.65rem; margin-top:8px; }
+  .reply textarea { resize:vertical; min-height:110px; line-height:1.7; border-radius:20px; }
+  .reply button { margin-top:12px; }
+  .next { margin:24px 0; }
+</style>
