@@ -58,6 +58,7 @@ export function initThemeToggle(doc: Document = document): void {
   const motion = win.matchMedia("(prefers-reduced-motion: reduce)");
   let requestedDark = root.classList.contains("dark");
   let running = false;
+  let navigating = false;
   let active:
     | {
         transition?: ViewTransition;
@@ -114,6 +115,7 @@ export function initThemeToggle(doc: Document = document): void {
 
     // Older browsers and reduced-motion users still get a working theme button.
     if (
+      navigating ||
       motion.matches ||
       doc.hidden ||
       typeof doc.startViewTransition !== "function" ||
@@ -202,6 +204,16 @@ export function initThemeToggle(doc: Document = document): void {
   win.addEventListener("resize", cancelActive, { passive: true });
   win.addEventListener("scroll", cancelActive, { passive: true });
   win.addEventListener("pagehide", cancelActive);
+  doc.addEventListener("astro:before-preparation", () => {
+    navigating = true;
+    cancelActive();
+  });
+  doc.addEventListener("astro:page-load", () => {
+    navigating = false;
+    requestedDark = root.classList.contains("dark");
+    syncButton();
+    syncBrowserColor();
+  });
   doc.addEventListener("visibilitychange", () => {
     if (doc.hidden) cancelActive();
   });

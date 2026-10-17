@@ -10,7 +10,7 @@ const activeIndex = Astro.url.pathname.startsWith("/blog")
 <a class="skip-link" href="#main">
   跳转到正文
 </a>
-<header class="site-header">
+<header class="site-header" transition:persist="site-header" transition:name="site-header" transition:animate="none">
   <a class="wordmark" href="/">
     mcxiaoshan<span>.ccwu.cc</span>
   </a>
@@ -69,38 +69,6 @@ const activeIndex = Astro.url.pathname.startsWith("/blog")
     </button>
   </div>
 </header>
-<script is:inline>
-  (() => {
-    const words = {
-      "zh-CN": { home: "首页", blog: "日志", about: "关于" },
-      "zh-TW": { home: "首頁", blog: "日誌", about: "關於" },
-      en: { home: "Home", blog: "Journal", about: "About" },
-    };
-    const select = document.getElementById("language");
-    const update = (lang) => {
-      if (!words[lang]) lang = "zh-CN";
-      select.value = lang;
-      document.documentElement.lang = lang === "zh-TW" ? "zh-HK" : lang;
-      document
-        .querySelectorAll("[data-nav]")
-        .forEach((el) => (el.textContent = words[lang][el.dataset.nav]));
-      window.dispatchEvent(new CustomEvent("lang-changed", { detail: lang }));
-      try {
-        localStorage.setItem("site-lang", lang);
-      } catch {}
-    };
-    select.addEventListener("change", () => update(select.value));
-    let lang = "zh-CN";
-    try {
-      lang = localStorage.getItem("site-lang") || lang;
-    } catch {}
-    update(lang);
-  })();
-</script>
-<script>
-  import { initThemeToggle } from "../scripts/theme-toggle";
-  initThemeToggle();
-</script>
 <style>
   .site-header {
     width: min(1320px, calc(100% - 80px));
@@ -126,7 +94,6 @@ const activeIndex = Astro.url.pathname.startsWith("/blog")
   nav {
     padding: 6px;
     border-radius: 99px;
-    view-transition-name: site-nav;
   }
   .nav-links {
     display: grid;
@@ -134,9 +101,9 @@ const activeIndex = Astro.url.pathname.startsWith("/blog")
     gap: 5px;
     position: relative;
     z-index: 1;
-    view-transition-name: nav-labels;
   }
   .nav-indicator {
+    transition: transform 380ms cubic-bezier(0.22, 1, 0.36, 1);
     position: absolute;
     top: 6px;
     bottom: 6px;
@@ -149,7 +116,6 @@ const activeIndex = Astro.url.pathname.startsWith("/blog")
       inset 0 1px 1px #ffffff80,
       0 1px 4px #143a5a0d;
     pointer-events: none;
-    view-transition-name: nav-indicator;
   }
   nav :global(a) {
     display: block;

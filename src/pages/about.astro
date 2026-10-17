@@ -1,9 +1,9 @@
 ---
+import { fade } from "astro:transitions";
 import LinkIcon from "../components/LinkIcon.astro";
 import BaseHead from "../components/BaseHead.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
-import PageLanguage from "../components/PageLanguage.astro";
 import { SITE_TITLE } from "../consts";
 ---
 
@@ -17,7 +17,7 @@ import { SITE_TITLE } from "../consts";
   </head>
   <body>
     <Header />
-    <main id="main" class="about">
+    <main transition:name="page-content" transition:animate={fade({ duration: "0.28s" })} id="main" class="about">
       <div class="page-heading">
         <p class="eyebrow">A little about me</p>
         <h1
@@ -130,7 +130,6 @@ import { SITE_TITLE } from "../consts";
       </div>
     </main>
     <Footer />
-    <PageLanguage />
   </body>
 </html>
 <style>

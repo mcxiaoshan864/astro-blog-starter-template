@@ -372,42 +372,11 @@ html.theme-soft-mask::view-transition-new(root) {
   );
 }
 
-/* Native page transitions preserve real links, history, and browser navigation. */
-@media (prefers-reduced-motion: no-preference) {
-  @view-transition {
-    navigation: auto;
-  }
-  main {
-    view-transition-name: page-content;
-  }
-}
+/* ClientRouter owns page transitions; persistent navigation uses its own slider. */
+
 html:not(.theme-transitioning)::view-transition-old(root),
 html:not(.theme-transitioning)::view-transition-new(root) {
   animation-duration: 160ms;
-}
-html:not(.theme-transitioning)::view-transition-group(site-nav),
-html:not(.theme-transitioning)::view-transition-group(nav-indicator),
-html:not(.theme-transitioning)::view-transition-group(nav-labels) {
-  animation-duration: 380ms;
-  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
-}
-html:not(.theme-transitioning)::view-transition-group(site-nav) {
-  z-index: 10;
-}
-html:not(.theme-transitioning)::view-transition-group(nav-indicator) {
-  z-index: 11;
-}
-html:not(.theme-transitioning)::view-transition-group(nav-labels) {
-  z-index: 12;
-}
-html:not(.theme-transitioning)::view-transition-old(site-nav),
-html:not(.theme-transitioning)::view-transition-new(site-nav),
-html:not(.theme-transitioning)::view-transition-old(nav-indicator),
-html:not(.theme-transitioning)::view-transition-new(nav-indicator),
-html:not(.theme-transitioning)::view-transition-old(nav-labels),
-html:not(.theme-transitioning)::view-transition-new(nav-labels) {
-  animation: none;
-  mix-blend-mode: normal;
 }
 html:not(.theme-transitioning)::view-transition-group(page-content) {
   animation-duration: 280ms;

@@ -384,3 +384,12 @@ test("failed mask registration retains a usable clip reveal", async () => {
   await flush();
   h.assertClean();
 });
+
+test('route preparation cancels the theme reveal and route completion keeps the button usable', async () => {
+ const h=harness();h.click();await flush();h.doc.dispatchEvent(new Event('astro:before-preparation'));await flush();h.assertClean();
+ h.doc.dispatchEvent(new Event('astro:page-load'));h.click();await flush();h.animations.at(-1).finish();await flush();assert.equal(h.root.classList.contains('dark'),false);h.assertClean();
+});
+test('theme clicks during route preparation apply directly without overlapping page captures', async () => {
+ const h=harness();h.doc.dispatchEvent(new Event('astro:before-preparation'));h.click();await flush();assert.equal(h.transitions.length,0);assert.equal(h.root.classList.contains('dark'),true);
+ h.doc.dispatchEvent(new Event('astro:page-load'));h.click();await flush();h.animations.at(-1).finish();await flush();assert.equal(h.root.classList.contains('dark'),false);h.assertClean();
+});

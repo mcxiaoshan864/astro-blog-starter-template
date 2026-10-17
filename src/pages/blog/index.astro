@@ -1,9 +1,9 @@
 ---
+import { fade } from "astro:transitions";
 import BaseHead from "../../components/BaseHead.astro";
 import Header from "../../components/Header.astro";
 import Footer from "../../components/Footer.astro";
 import PostCard from "../../components/PostCard.astro";
-import PageLanguage from "../../components/PageLanguage.astro";
 import { SITE_TITLE, SITE_DESCRIPTION } from "../../consts";
 import { getCollection } from "astro:content";
 const posts = (await getCollection("blog")).sort(
@@ -18,7 +18,7 @@ const posts = (await getCollection("blog")).sort(
   </head>
   <body>
     <Header />
-    <main id="main" class="journal">
+    <main transition:name="page-content" transition:animate={fade({ duration: "0.28s" })} id="main" class="journal">
       <div class="page-heading">
         <p class="eyebrow">Journal / {String(posts.length).padStart(2, "0")}</p>
         <h1 data-en="A few words, now and then." data-tw="得閒，寫吓嘢。">
@@ -70,7 +70,6 @@ const posts = (await getCollection("blog")).sort(
       )}
     </main>
     <Footer />
-    <PageLanguage />
   </body>
 </html>
 <style>
