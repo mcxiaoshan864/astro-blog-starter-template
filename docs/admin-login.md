@@ -21,7 +21,7 @@ On your own machine, run `node scripts/create-admin-config.mjs` with Node 22+. P
 - Signed, origin-bound sessions expire after eight hours. Cookie: `__Host-admin_session`, `HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/`, with no `Domain` attribute.
 - Login and logout are same-origin HTTPS POST operations. Unauthenticated requests never render the protected page. Logout clears this browser's cookie; stateless tokens copied before logout remain valid until expiry or configuration rotation.
 - Cloudflare's rate limiting binding allows five login attempts per minute per IP per Cloudflare location. It is approximate and is not a global account lockout. If the binding fails, login is refused.
-- All administrator responses use no-store caching, no-index headers, a script nonce, frame protection and no-referrer policy. Dynamic administrator routes run before static assets.
+- Administrator responses use no-store caching, no-index headers, a script nonce, frame protection and a same-origin referrer policy. Both the response header and HTML meta tag must use `same-origin`: `no-referrer` makes native form navigation send `Origin: null`, which is correctly rejected by CSRF protection. Cross-site referrers remain suppressed. Dynamic administrator routes run before static assets.
 - No database is needed for this first single-account version. The protected page currently shows login status only; guestbook management has not been implemented.
 
 ## Runtime compatibility

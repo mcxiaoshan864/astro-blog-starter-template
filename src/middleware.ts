@@ -29,7 +29,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
   response.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
   response.headers.set("X-Frame-Options", "DENY");
   response.headers.set("X-Content-Type-Options", "nosniff");
-  response.headers.set("Referrer-Policy", "no-referrer");
+  // no-referrer makes native form navigations send Origin: null, breaking CSRF checks.
+  // Keep origin metadata within this site, and omit referrers to other sites.
+  response.headers.set("Referrer-Policy", "same-origin");
   response.headers.set("Content-Security-Policy", `default-src 'self'; script-src 'self' 'nonce-${nonce}'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'; object-src 'none'`);
   return response;
 });

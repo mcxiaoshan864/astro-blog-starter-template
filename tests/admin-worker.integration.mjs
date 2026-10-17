@@ -61,3 +61,26 @@ test('built Worker enforces rate limiting on repeated incorrect passwords',async
     const limited=await mf.dispatchFetch(origin+'/admin/login/',post('',{username:'admin',password}));assert.equal(limited.status,429);assert.equal(limited.headers.get('retry-after'),'60');security(limited);
   }finally{await mf.dispose();}
 });
+// Native HTML form navigation follows Referrer-Policy for its Origin header.
+// A fetch() test with a manually supplied Origin cannot detect this regression.
+function nativeFormPost(page, html, fields = {}, cookie) {
+  const meta = html.match(/<meta\s+name="referrer"\s+content="([^"]+)"/i)?.[1];
+  const policy = meta || page.headers.get('referrer-policy');
+  const suppliedOrigin = policy === 'no-referrer' ? 'null' : origin;
+  return post('', fields, {origin:suppliedOrigin,...(cookie?{cookie}:{}),'sec-fetch-mode':'navigate','sec-fetch-site':'same-origin'});
+}
+test('native form referrer policy preserves same-origin login, password errors and logout without permitting null origins',async()=>{
+  const mf=worker();
+  try{
+    const page=await mf.dispatchFetch(origin+'/admin/login/');const html=await page.text();
+    const wrong=await mf.dispatchFetch(origin+'/admin/login/',nativeFormPost(page,html,{username:'admin',password:'incorrect'}));
+    assert.equal(wrong.status,401,'a legitimate native form must reach password validation rather than the CSRF block');
+    const errorHtml=await wrong.text();assert.match(errorHtml,/账号或密码不正确/);assert.doesNotMatch(errorHtml,/Cross-site POST/);
+    assert.equal(page.headers.get('referrer-policy'),'same-origin');assert.match(html,/<meta name="referrer" content="same-origin"/);
+    const signed=await mf.dispatchFetch(origin+'/admin/login/',nativeFormPost(wrong,errorHtml,{username:'admin',password}));
+    assert.equal(signed.status,303);const cookie=signed.headers.get('set-cookie').split(';')[0];
+    const dashboard=await mf.dispatchFetch(origin+'/admin/',{headers:{cookie}});const dashboardHtml=await dashboard.text();assert.equal(dashboard.status,200);
+    const logout=await mf.dispatchFetch(origin+'/admin/logout/',nativeFormPost(dashboard,dashboardHtml,{},cookie));assert.equal(logout.status,303);
+    const opaque=await mf.dispatchFetch(origin+'/admin/login/',post('',{username:'admin',password},{origin:'null'}));assert.equal(opaque.status,403);
+  }finally{await mf.dispose();}
+});
