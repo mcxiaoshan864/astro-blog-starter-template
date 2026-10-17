@@ -78,6 +78,7 @@ const isAbout = Astro.url.pathname.replace(/\/$/, "") === "/about";
     color: var(--text-muted);
   }
   article {
+    border-radius: 32px;
     overflow: hidden;
   }
   .article-heading {
@@ -165,6 +166,9 @@ const isAbout = Astro.url.pathname.replace(/\/$/, "") === "/about";
     text-decoration: none;
   }
   @media (max-width: 700px) {
+    article {
+      border-radius: 24px;
+    }
     .article-heading {
       padding: 30px 24px;
     }
