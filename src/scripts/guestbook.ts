@@ -82,6 +82,7 @@ function mount(root: HTMLElement) {
   let statusKey: TextKey | undefined;
   let listKey: TextKey | undefined = 'loading';
   let widgetFailed = false;
+  let compactWidget = verification.clientWidth < 300;
   const words = () => text[document.documentElement.lang as keyof typeof text] || text['zh-CN'];
   const counter = () => {
     const length = [...message.value.normalize('NFC').trim()].length;
@@ -148,6 +149,7 @@ function mount(root: HTMLElement) {
   let widgetGeneration = 0;
   const startWidget = async () => {
     const generation = ++widgetGeneration;
+    compactWidget = verification.clientWidth < 300;
     widgetFailed = false;
     token = ''; counter();
     if (widgetId !== undefined) { try { api()?.remove(widgetId); } catch {} widgetId = undefined; }
@@ -157,7 +159,7 @@ function mount(root: HTMLElement) {
       if (disposed || generation !== widgetGeneration) return;
       widgetId = turnstile.render(verification, {
         sitekey: root.dataset.sitekey, action: 'guestbook', theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
-        size: 'flexible',
+        size: compactWidget ? 'compact' : 'flexible',
         callback: (value: string) => { token = value; widgetFailed = false; counter(); if (statusKey === 'widget' || statusKey === 'verification') { statusKey = undefined; status.textContent = ''; } },
         'expired-callback': () => { token = ''; counter(); },
         'error-callback': () => { widgetError(); },
@@ -170,6 +172,10 @@ function mount(root: HTMLElement) {
     if (dark !== next) { dark = next; if (!busy) void startWidget(); }
   });
   observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+  const resizeObserver = new ResizeObserver(() => {
+    if (!busy && !disposed && compactWidget !== (verification.clientWidth < 300)) void startWidget();
+  });
+  resizeObserver.observe(verification);
   message.addEventListener('input', counter);
   form.addEventListener('submit', async event => {
     event.preventDefault();
@@ -199,6 +205,6 @@ function mount(root: HTMLElement) {
   return {
     root,
     translate() { counter(); if (statusKey) status.textContent = words()[statusKey]; if (widgetFailed) { const button = verification.querySelector('button'); if (button) button.textContent = words().retry; } render(); },
-    dispose() { disposed = true; requests.abort(); observer.disconnect(); if (widgetId !== undefined) { try { api()?.remove(widgetId); } catch {} } },
+    dispose() { disposed = true; requests.abort(); observer.disconnect(); resizeObserver.disconnect(); if (widgetId !== undefined) { try { api()?.remove(widgetId); } catch {} } },
   };
 }
