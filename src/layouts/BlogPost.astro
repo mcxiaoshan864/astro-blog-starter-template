@@ -5,7 +5,14 @@ import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import FormattedDate from "../components/FormattedDate.astro";
 type Props = CollectionEntry<"blog">["data"];
-const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
+const {
+  title,
+  description,
+  pubDate,
+  updatedDate,
+  heroImage,
+  author = "mcxiaoshan",
+} = Astro.props;
 const isAbout = Astro.url.pathname.replace(/\/$/, "") === "/about";
 ---
 
@@ -13,6 +20,7 @@ const isAbout = Astro.url.pathname.replace(/\/$/, "") === "/about";
 <html lang="zh-CN">
   <head>
     <BaseHead title={title} description={description} image={heroImage} />
+    <meta name="author" content={author} />
   </head>
   <body>
     <Header />
@@ -28,7 +36,7 @@ const isAbout = Astro.url.pathname.replace(/\/$/, "") === "/about";
           <h1>{title}</h1>
           <p class="article-description">{description}</p>
           <div class="article-meta">
-            <span>mcxiaoshan</span>
+            <span>{author}</span>
             <span>·</span>
             <FormattedDate date={pubDate} />
             {updatedDate && (
