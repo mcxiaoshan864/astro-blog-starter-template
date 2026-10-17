@@ -1,0 +1,62 @@
+---
+import "../styles/global.css";
+interface Props { title: string; wide?: boolean }
+const { title, wide = false } = Astro.props;
+---
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="referrer" content="no-referrer" />
+    <title>{title} · mcxiaoshan</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <script is:inline nonce={Astro.locals.adminNonce}>
+      try { document.documentElement.classList.toggle('dark', localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && matchMedia('(prefers-color-scheme: dark)').matches)); } catch {}
+    </script>
+  </head>
+  <body>
+    <header class="admin-header">
+      <a class="wordmark" href="/">mcxiaoshan<span>.ccwu.cc</span></a>
+      <a class="return-link" href="/">返回网站 ↗</a>
+    </header>
+    <main class:list={["admin-main", { wide }]} id="main">
+      <section class="glass admin-panel"><slot /></section>
+      <p class="admin-footnote">mcxiaoshan · 站长空间</p>
+    </main>
+  </body>
+</html>
+<style>
+  .admin-header { width: min(1320px, calc(100% - 80px)); margin: 34px auto 0; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+  .wordmark { text-decoration: none; font-size: .95rem; font-weight: 600; letter-spacing: -.03em; }
+  .wordmark span { opacity: .55; font-weight: 400; }
+  .return-link { text-decoration: none; color: var(--text-muted); font-size: .8rem; }
+  .admin-main { width: min(464px, calc(100% - 48px)); padding: 75px 0 40px; }
+  .admin-main.wide { width: min(640px, calc(100% - 48px)); }
+  .admin-panel { padding: 40px; border-radius: 32px; }
+  .admin-footnote { text-align: center; color: var(--text-muted); font-size: .7rem; margin: 24px 0 0; }
+  .admin-panel :global(h1) { font-size: 2.15rem; margin-bottom: 16px; }
+  .admin-panel :global(.intro) { color: var(--text-muted); font-size: .9rem; margin-bottom: 28px; }
+  .admin-panel :global(.eyebrow) { margin-bottom: 20px; }
+  .admin-panel :global(label) { display: block; font-size: .8rem; margin: 20px 0 8px; }
+  .admin-panel :global(input), .admin-panel :global(textarea) { width: 100%; min-width: 0; border: 1px solid var(--line); border-radius: 14px; padding: 13px 15px; background: var(--glass); color: var(--text-main); font: inherit; font-size: 1rem; }
+  .admin-panel :global(input:focus-visible), .admin-panel :global(textarea:focus-visible) { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .admin-panel :global(input[readonly]) { color: var(--text-muted); }
+  .admin-panel :global(.submit) { width: 100%; margin-top: 28px; gap: 12px; color: var(--text-main); }
+  .admin-panel :global(button:disabled) { cursor: default; opacity: .55; }
+  .admin-panel :global(.notice) { padding: 14px 16px; border-radius: 14px; background: var(--glass); border: 1px solid var(--line); color: var(--text-muted); font-size: .85rem; margin: 20px 0; }
+  .admin-panel :global(.error) { color: #9c2525; background: #f9c5b82e; }
+  :global(html.dark) .admin-panel :global(.error) { color: #ffc7bd; }
+  .admin-panel :global(.hint) { color: var(--text-muted); font-size: .75rem; margin: 16px 0 0; }
+  .admin-panel :global(.password-field) { position: relative; }
+  .admin-panel :global(.password-field input) { padding-right: 66px; }
+  .admin-panel :global(.reveal) { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); border: 0; border-radius: 8px; padding: 7px; background: transparent; color: var(--text-muted); font-size: .75rem; }
+  @media (max-width: 700px) {
+    .admin-header { width: calc(100% - 48px); margin-top: 26px; }
+    .wordmark span { display: none; }
+    .admin-main { padding-top: 55px; }
+    .admin-panel { padding: 28px 24px; border-radius: 24px; }
+    .admin-panel :global(h1) { font-size: 1.9rem; }
+  }
+</style>

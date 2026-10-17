@@ -1,0 +1,39 @@
+---
+export const prerender = false;
+import AdminLayout from "../../layouts/AdminLayout.astro";
+import { authenticate, SESSION_COOKIE, sessionCookieOptions } from "../../server/admin-auth";
+let error = "";
+const configured = Astro.locals.adminConfigured;
+if (Astro.request.method === "POST") {
+  const result = await authenticate(Astro.request, Astro.locals.runtime?.env || {});
+  if (result.ok) {
+    Astro.cookies.set(SESSION_COOKIE, result.token, sessionCookieOptions);
+    return Astro.redirect("/admin/", 303);
+  }
+  Astro.response.status = result.status;
+  if (result.status === 429) Astro.response.headers.set("Retry-After", "60");
+  error = result.message;
+}
+---
+<AdminLayout title="站长登录">
+  <p class="eyebrow">A space of your own</p>
+  <h1>欢迎回来。</h1>
+  <p class="intro">登录后，继续照顾你的小站。</p>
+  {error && <p class="notice error" role="alert">{error}</p>}
+  {Astro.url.searchParams.get("loggedout") === "1" && <p class="notice" role="status">你已退出登录。</p>}
+  {!configured && <div class="notice">管理员账户尚未启用。<br /><a href="/admin/setup/">开始配置 ↗</a></div>}
+  <form method="POST" action="/admin/login/" data-login-form>
+    <label for="username">管理员账号</label>
+    <input id="username" name="username" value="admin" autocomplete="username" readonly />
+    <label for="password">密码</label>
+    <div class="password-field">
+      <input id="password" name="password" type="password" autocomplete="current-password" required maxlength="256" disabled={!configured} />
+      <button class="reveal" type="button" aria-controls="password" aria-label="显示密码" aria-pressed="false" disabled={!configured}>显示</button>
+    </div>
+    <button class="button glass-control submit" type="submit" disabled={!configured}><span>登录</span><span aria-hidden="true">→</span></button>
+  </form>
+  <p class="hint">仅供站长使用 · 登录状态保留 8 小时</p>
+  <script>
+    import "../../scripts/admin-ui";
+  </script>
+</AdminLayout>

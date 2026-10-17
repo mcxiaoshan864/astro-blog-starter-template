@@ -1,0 +1,47 @@
+---
+export const prerender = false;
+import AdminLayout from "../../layouts/AdminLayout.astro";
+if (Astro.locals.adminConfigured) return Astro.redirect("/admin/login/", 303);
+---
+<AdminLayout title="启用管理员账户" wide>
+  <p class="eyebrow">Make it yours</p>
+  <h1>先给小站一把钥匙。</h1>
+  <p class="intro">账号固定为 <strong>admin</strong>。在下面设置密码，生成账户配置，再由你添加到 Cloudflare。</p>
+  <div class="notice">密码只在你的浏览器中计算，不会提交到网站。此页面不能直接创建管理员账户；只有能修改 Cloudflare 配置的人才能启用登录。</div>
+  <form id="admin-setup-form">
+    <label for="new-password">设置密码</label>
+    <div class="password-field">
+      <input id="new-password" type="password" autocomplete="new-password" minlength="16" maxlength="256" required aria-describedby="password-hint" />
+      <button class="reveal" type="button" aria-controls="new-password" aria-label="显示密码" aria-pressed="false">显示</button>
+    </div>
+    <p class="hint" id="password-hint">至少 16 个字符，建议使用密码管理器生成并保存。</p>
+    <label for="confirm-password">再输入一次</label>
+    <input id="confirm-password" type="password" autocomplete="new-password" minlength="16" maxlength="256" required />
+    <p class="notice error" id="setup-error" role="alert" hidden></p>
+    <button class="button glass-control submit" id="generate-config" type="submit" disabled>在本机生成配置 <span aria-hidden="true">→</span></button>
+  </form>
+  <noscript><p class="notice">生成配置需要 JavaScript。密码不会通过表单发送。</p></noscript>
+  <section id="config-result" hidden>
+    <p class="notice" role="status">配置已生成。请先保存你刚设置的密码，再完成下面三步。</p>
+    <ol>
+      <li>打开 Cloudflare → Workers 和 Pages → <strong>astro-blog-starter-template</strong> → 设置 → 变量和机密。</li>
+      <li>添加一条类型为 <strong>Secret（机密）</strong> 的变量，名称填 <code>ADMIN_AUTH</code>，值粘贴下面的完整配置。</li>
+      <li>保存并部署，然后返回登录页，用 <strong>admin</strong> 和你刚设置的密码登录。</li>
+    </ol>
+    <label for="auth-config">账户配置（含密钥，请勿分享）</label>
+    <textarea id="auth-config" readonly rows="6" spellcheck="false" autocomplete="off"></textarea>
+    <button class="button glass-control submit" id="copy-config" type="button">复制配置</button>
+    <p class="hint" id="copy-status" role="status"></p>
+    <p class="hint">刷新或关闭此页后，这份配置不会保留。更换密码时，使用仓库的本机配置脚本重新生成配置并替换 ADMIN_AUTH，现有登录会同时失效。</p>
+    <a class="button glass-control submit" href="/admin/login/">已完成，去登录 ↗</a>
+  </section>
+  <script>
+    import "../../scripts/admin-ui";
+    import "../../scripts/admin-setup";
+  </script>
+</AdminLayout>
+<style>
+  ol { padding-left: 22px; color: var(--text-muted); font-size: .85rem; }
+  li { margin: 14px 0; }
+  textarea { font-family: ui-monospace, monospace !important; font-size: .75rem !important; resize: vertical; overflow-wrap: anywhere; }
+</style>
