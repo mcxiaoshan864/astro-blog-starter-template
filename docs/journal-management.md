@@ -1,0 +1,31 @@
+# 日志管理
+
+入口：`/admin/journal/`，复用唯一管理员登录。新建、编辑、自动保存、导入、配图、预览、发布更新、撤回、回收站和恢复均在站长后台完成。
+
+## 内容与发布
+
+文章存入现有 D1 的 `journal_entries`，配图存入 `journal_assets`。无需额外开通 R2 或转换服务器。当前账户未启用 R2，个人站第一版使用受限的小图片存储；未来图片较多时，可迁移资产到 R2 并保留现有媒体 URL。
+
+`draft` 和 `published` 是独立版本。自动保存只写 draft，发布时才复制到 published。撤回和移入回收站后，公开页面及配图不再可访问。恢复的文章回到草稿，需手动重新发布。首次发布后 slug 固定，避免旧链接失效。
+
+每次更新带 revision，通过条件 UPDATE 阻止旧页面覆盖新版本。编辑器把未同步内容保存在当前浏览器的 localStorage，刷新后可选择恢复；同时提供 Markdown 导出。数据库冲突时停止自动覆盖并提示导出核对。
+
+## 文件导入
+
+- TXT：1 MB，自动处理 UTF-8、UTF-16 BOM 和 GB18030；按文本导入，不把文本里的符号当成 HTML。
+- Markdown：1 MB，直接导入正文。
+- DOC：2 MB，使用 word-extractor 的内存 Buffer 路径提取正文。**旧 DOC 的图片、表格与排版不保留**，导入结果明确提示，可改用 DOCX 保留更多格式。不启动 Office，不执行宏。
+- DOCX：8 MB，以 Mammoth 转换常见语义格式，Turndown 转为 Markdown，保留简单表格。ZIP 条目数和展开大小受限，不读取外部文件。图片仅支持 PNG/JPEG/GIF/WebP，单图 750 KB、每篇最多 100 张；不能导入的图片或特殊格式有提示。
+- 单独上传的大图片在浏览器中尝试缩放至最长边 1920 并压缩。GIF 保持原始文件，仍受大小限制。
+
+所有导入先返回编辑器，再保存草稿，不直接发布。导入前若有正文，需确认替换。原始上传文件不持久保存；DOCX 中的配图会存入该草稿，未发布前只能由管理员查看。
+
+Markdown 渲染使用明确的 HTML 标签和属性白名单，移除脚本、事件、iframe、危险 URL 与外部图片，只允许本站媒体。预览和正式文章使用同一渲染函数与文章布局。管理端继承会话、同源检查、nonce CSP、no-store 和 noindex。
+
+## 迁移与维护
+
+按顺序应用 `migrations/0002_journal.sql` 和 `0003_import_existing_journal.sql`。后者只插入原有 Codex 日志一次，保留 `/blog/a-glass-website-with-codex/`，不会覆盖数据库中的后续编辑。原 Markdown 文件仍保留在仓库作为历史来源，公开页面以数据库为准，不在撤回时回退到文件内容。
+
+`/blog/` 每页 20 篇，公开文章按文章日期排序；动态站点地图 `/sitemap-journal.xml` 仅包含已发布文章。
+
+测试：`npm run check`；`node --test tests/*.test.mjs tests/*.integration.mjs`。Workerd 集成测试使用隔离数据库和一次性密码，覆盖真实 DOC、生成的 DOCX、中文编码、图像权限、发布版本隔离、冲突、撤回、回收站和 XSS。DOC 测试样本的来源和许可见 `tests/fixtures/README.md`。

@@ -8,7 +8,10 @@ import cloudflare from "@astrojs/cloudflare";
 // https://astro.build/config
 export default defineConfig({
 	site: "https://mcxiaoshan.ccwu.cc",
-	integrations: [mdx(), sitemap()],
+	integrations: [mdx(), sitemap({
+		customSitemaps: ['https://mcxiaoshan.ccwu.cc/sitemap-journal.xml'],
+		filter: (page) => !/^\/(?:admin|api|media)(?:\/|$)/.test(new URL(page).pathname),
+	})],
 	adapter: cloudflare({
 		platformProxy: {
 			enabled: true,

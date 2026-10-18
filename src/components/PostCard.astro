@@ -1,23 +1,13 @@
 ---
 import FormattedDate from "./FormattedDate.astro";
-import type { CollectionEntry } from "astro:content";
+import type { PublicEntry } from '../server/journal';
 interface Props {
-  post: CollectionEntry<"blog">;
+  post: PublicEntry;
 }
 const { post } = Astro.props;
 ---
 
 <a class="post-card glass" href={`/blog/${post.id}/`}>
-  {post.data.heroImage && (
-    <img
-      class="post-cover"
-      src={post.data.heroImage}
-      width="720"
-      height="405"
-      alt=""
-      loading="lazy"
-    />
-  )}
   <div class="post-info">
     <div class="post-meta">
       <span class="tag">折腾手记</span>

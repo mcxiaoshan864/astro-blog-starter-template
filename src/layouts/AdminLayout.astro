@@ -1,7 +1,7 @@
 ---
 import "../styles/global.css";
-interface Props { title: string; wide?: boolean }
-const { title, wide = false } = Astro.props;
+interface Props { title: string; wide?: boolean; editor?:boolean }
+const { title, wide = false, editor = false } = Astro.props;
 ---
 <!doctype html>
 <html lang="zh-CN">
@@ -21,7 +21,7 @@ const { title, wide = false } = Astro.props;
       <a class="wordmark" href="/">mcxiaoshan<span>.ccwu.cc</span></a>
       <a class="return-link" href="/">返回网站 ↗</a>
     </header>
-    <main class:list={["admin-main", { wide }]} id="main">
+    <main class:list={["admin-main", { wide, editor }]} id="main">
       <section class="glass admin-panel"><slot /></section>
       <p class="admin-footnote">mcxiaoshan · 站长空间</p>
     </main>
@@ -34,6 +34,7 @@ const { title, wide = false } = Astro.props;
   .return-link { text-decoration: none; color: var(--text-muted); font-size: .8rem; }
   .admin-main { width: min(464px, calc(100% - 48px)); padding: 75px 0 40px; }
   .admin-main.wide { width: min(640px, calc(100% - 48px)); }
+  .admin-main.editor { width: min(1080px, calc(100% - 48px)); padding-top:45px; }
   .admin-panel { padding: 40px; border-radius: 32px; overflow: hidden; }
   .admin-footnote { text-align: center; color: var(--text-muted); font-size: .7rem; margin: 24px 0 0; }
   .admin-panel :global(h1) { font-size: 2.15rem; margin-bottom: 16px; }

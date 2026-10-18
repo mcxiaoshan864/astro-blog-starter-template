@@ -1,14 +1,17 @@
 ---
+export const prerender = false;
 import { fade } from "astro:transitions";
 import BaseHead from "../../components/BaseHead.astro";
 import Header from "../../components/Header.astro";
 import Footer from "../../components/Footer.astro";
 import PostCard from "../../components/PostCard.astro";
 import { SITE_TITLE, SITE_DESCRIPTION } from "../../consts";
-import { getCollection } from "astro:content";
-const posts = (await getCollection("blog")).sort(
-  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
-);
+import { listPublicEntries, type PublicEntry } from '../../server/journal';
+const page = Math.max(1,Math.min(10000,Number.parseInt(Astro.url.searchParams.get('page') || '1',10) || 1));
+let posts:PublicEntry[] = [], count = 0, unavailable = false;
+try { ({posts,count} = await listPublicEntries(Astro.locals.runtime.env,page)); }
+catch { unavailable=true; Astro.response.status=503; }
+Astro.response.headers.set('Cache-Control','no-store');
 ---
 
 <!doctype html>
@@ -20,7 +23,7 @@ const posts = (await getCollection("blog")).sort(
     <Header />
     <main transition:name="page-content" transition:animate={fade({ duration: "0.28s" })} id="main" class="journal">
       <div class="page-heading">
-        <p class="eyebrow">Journal / {String(posts.length).padStart(2, "0")}</p>
+        <p class="eyebrow">Journal / {String(count).padStart(2, "0")}</p>
         <h1 data-en="A few words, now and then." data-tw="得閒，寫吓嘢。">
           偶尔，写点什么。
         </h1>
@@ -31,7 +34,7 @@ const posts = (await getCollection("blog")).sort(
           记录走过的路，和路上那些有意思的小事。
         </p>
       </div>
-      {posts.length ? (
+      {unavailable ? <p class="muted" role="status">日志暂时无法读取，请稍后再来。</p> : posts.length ? (
         <section class="post-list" aria-label="所有日志">
           {posts.map((post) => (
             <PostCard post={post} />
@@ -68,11 +71,13 @@ const posts = (await getCollection("blog")).sort(
           </a>
         </section>
       )}
+      {count > 20 && <nav class="pagination" aria-label="日志翻页">{page > 1 && <a class="button glass-control" href={`?page=${page-1}`}>← 上一页</a>}{count > page * 20 && <a class="button glass-control" href={`?page=${page+1}`}>下一页 →</a>}</nav>}
     </main>
     <Footer />
   </body>
 </html>
 <style>
+  .pagination { display:flex; justify-content:center; gap:16px; margin-top:36px; }
   .journal {
     min-height: calc(100svh - 190px);
   }

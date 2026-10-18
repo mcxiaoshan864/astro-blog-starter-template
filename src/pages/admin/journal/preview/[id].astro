@@ -1,0 +1,12 @@
+---
+export const prerender = false;
+import BlogPost from '../../../../layouts/BlogPost.astro';
+import { getEntry, renderMarkdown, type Draft } from '../../../../server/journal';
+if (!Astro.locals.adminSession) return Astro.redirect('/admin/login/',303);
+const entry = await getEntry(Astro.locals.runtime.env,Astro.params.id || '');
+if (!entry || entry.status==='trash') return Astro.redirect('/admin/journal/',303);
+const draft = JSON.parse(entry.draft) as Draft;
+---
+<BlogPost title={draft.title || '未命名草稿'} description={draft.description} author={draft.author} pubDate={new Date(draft.date+'T00:00:00+08:00')} previewId={entry.id}>
+  <div set:html={renderMarkdown(draft.content)} />
+</BlogPost>

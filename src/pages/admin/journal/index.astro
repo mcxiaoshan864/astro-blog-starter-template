@@ -1,0 +1,66 @@
+---
+export const prerender = false;
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { database, type Entry, type Draft } from '../../../server/journal';
+if (!Astro.locals.adminSession) return Astro.redirect('/admin/login/',303);
+const requested = Astro.url.searchParams.get('filter');
+const filter = ['draft','published','trash'].includes(requested || '') ? requested! : 'all';
+const query = (Astro.url.searchParams.get('q') || '').slice(0,100).trim();
+const page = Math.max(1, Math.min(10000,parseInt(Astro.url.searchParams.get('page') || '1') || 1));
+let entries:Entry[] = [], total=0, unavailable=false;
+const counts:Record<string,number>={draft:0,published:0,trash:0};
+try {
+  const db=database(Astro.locals.runtime.env);
+  const countRows=await db.prepare('SELECT status,COUNT(*) AS count FROM journal_entries GROUP BY status').all<{status:string;count:number}>();
+  for(const row of countRows.results)counts[row.status]=row.count;
+  const where=filter==='all' ? "status != 'trash'" : 'status = ?';
+  const values:(string|number)[]=filter==='all'?[]:[filter];
+  const search=query ? " AND json_extract(draft,'$.title') LIKE ?" : '';
+  if(query)values.push('%'+query+'%');
+  total=(await db.prepare(`SELECT COUNT(*) AS count FROM journal_entries WHERE ${where}${search}`).bind(...values).first<{count:number}>())?.count || 0;
+  entries=(await db.prepare(`SELECT * FROM journal_entries WHERE ${where}${search} ORDER BY saved_at DESC,id DESC LIMIT 20 OFFSET ?`).bind(...values,(page-1)*20).all<Entry>()).results;
+} catch { unavailable=true; Astro.response.status=503; }
+const href=(number:number)=>`?filter=${filter}&q=${encodeURIComponent(query)}&page=${number}`;
+const date=(timestamp:number)=>new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}).format(timestamp*1000);
+---
+<AdminLayout title="日志管理" editor>
+  <div class="topline"><a href="/admin/">← 站长空间</a><a href="/blog/">查看公开日志 ↗</a></div>
+  <p class="eyebrow">A place for your words</p>
+  <div class="heading"><div><h1>日志管理</h1><p class="intro">从一个念头，到一篇可以分享的文章。</p></div><a class="button glass-control" href="/admin/journal/new">写一篇日志 <span aria-hidden="true">＋</span></a></div>
+  <nav class="filters" aria-label="文章筛选">{[['all','全部',counts.draft+counts.published],['draft','草稿',counts.draft],['published','已发布',counts.published],['trash','回收站',counts.trash]].map(([key,label,count])=><a class:list={['glass-control',{active:filter===key}]} aria-current={filter===key?'page':undefined} href={`?filter=${key}`}>{label} · {count}</a>)}</nav>
+  <form class="search" method="GET"><input type="hidden" name="filter" value={filter} /><label for="search-title">查找文章</label><div><input id="search-title" name="q" value={query} maxlength="100" placeholder="按标题搜索" /><button class="button glass-control">搜索</button></div></form>
+  {Astro.url.searchParams.has('saved') && <p class="notice" role="status">操作已完成。</p>}
+  {Astro.url.searchParams.has('error') && <p class="notice error" role="alert">操作未完成，请刷新核对文章版本后重试。</p>}
+  {unavailable ? <p class="notice error">文章暂时无法读取，请稍后刷新。</p> : entries.length===0 ? <div class="empty"><p>{query?'没有找到匹配的标题。':filter==='trash'?'回收站是空的。':'这里还没有文章。'}</p><p>可以直接在线写，也可以上传 TXT、DOC、DOCX 或 Markdown 文件。</p></div> : <div class="entries">{entries.map(entry=>{
+    const draft=JSON.parse(entry.draft) as Draft;
+    const changed=entry.status==='published' && entry.draft!==entry.published;
+    return <article><div class="entry-title"><span class="badge">{entry.status==='trash'?'回收站':entry.status==='published'?'已发布':'草稿'}{changed?' · 有未发布修改':''}</span><h2><a href={`/admin/journal/edit/${entry.id}/`}>{draft.title || '未命名草稿'}</a></h2><p>{draft.description || '还没有摘要，发布时会从正文自动生成。'}</p><small>保存于 {date(entry.saved_at)} · /blog/{entry.slug}/</small></div><div class="entry-actions">{entry.status==='trash'?<form method="POST" action="/admin/journal/action"><input type="hidden" name="id" value={entry.id} /><input type="hidden" name="revision" value={entry.revision} /><button class="button glass-control" name="operation" value="restore">恢复为草稿</button></form>:<><a class="button glass-control" href={`/admin/journal/edit/${entry.id}/`}>继续编辑 ↗</a><a href={`/admin/journal/preview/${entry.id}/`}>预览草稿</a></>}</div></article>;
+  })}</div>}
+  {total > 20 && <nav class="pages" aria-label="文章翻页">{page > 1 && <a href={href(page-1)}>← 上一页</a>}<span>{page} / {Math.ceil(total/20)}</span>{total > page * 20 && <a href={href(page+1)}>下一页 →</a>}</nav>}
+</AdminLayout>
+<style>
+  .topline { display:flex; justify-content:space-between; gap:16px; font-size:.75rem; margin-bottom:30px; color:var(--text-muted); }
+  a { text-decoration:none; }
+  .heading { display:flex; align-items:center; justify-content:space-between; gap:24px; }
+  .heading .intro { margin-bottom:0; }
+  .heading .button { flex-shrink:0; font-size:.8rem; gap:20px; }
+  .filters { display:flex; flex-wrap:wrap; gap:8px; margin:32px 0 20px; }
+  .filters a { border-radius:999px; padding:9px 16px; font-size:.75rem; }
+  .filters .active { box-shadow:inset 0 0 0 1px var(--accent); color:var(--accent); }
+  .search { margin-bottom:28px; max-width:480px; }
+  .search label { font-size:.7rem; }
+  .search>div { display:flex; gap:10px; }
+  .search input { min-height:44px; font-size:.85rem; }
+  .search button { min-height:44px; font-size:.75rem; }
+  .empty { padding:32px 0; color:var(--text-muted); font-size:.85rem; }
+  .entries article { display:flex; gap:28px; justify-content:space-between; align-items:center; border-top:1px solid var(--line); padding:28px 0; }
+  .entry-title { min-width:0; }
+  .badge { display:inline-block; color:var(--accent); font-size:.65rem; margin-bottom:12px; }
+  h2 { font-size:1.2rem; line-height:1.5; margin-bottom:10px; overflow-wrap:anywhere; }
+  article p { font-size:.8rem; line-height:1.8; color:var(--text-muted); margin-bottom:12px; }
+  small { color:var(--text-muted); font-size:.65rem; overflow-wrap:anywhere; }
+  .entry-actions { display:flex; flex-direction:column; align-items:center; gap:14px; flex-shrink:0; font-size:.7rem; }
+  .entry-actions .button { font-size:.75rem; min-height:44px; padding:10px 18px; }
+  .pages { display:flex; justify-content:center; gap:24px; margin-top:30px; font-size:.8rem; }
+  @media(max-width:700px) { .heading { align-items:stretch; flex-direction:column; }.heading .button { align-self:flex-start; }.entries article { align-items:stretch; flex-direction:column; gap:20px; }.entry-actions { flex-direction:row; justify-content:flex-start; } }
+</style>
