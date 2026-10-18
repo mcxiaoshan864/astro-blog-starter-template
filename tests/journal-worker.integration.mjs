@@ -7,14 +7,15 @@ import {Miniflare,Log,LogLevel} from 'miniflare';
 import {zipSync,strToU8} from 'fflate';
 import iconv from 'iconv-lite';
 import {JSDOM} from 'jsdom';
-import ts from 'typescript';
+import {build} from 'esbuild';
 const config=JSON.parse(await readFile(new URL('../wrangler.json',import.meta.url),'utf8'));
 const root=fileURLToPath(new URL('../dist/_worker.js/',import.meta.url)).replace(/\/$/,'');
 async function modulesAt(dir){const result=[];for(const entry of await readdir(dir,{withFileTypes:true})){const path=dir+'/'+entry.name;if(entry.isDirectory())result.push(...await modulesAt(path));else if(/\.(mjs|js)$/.test(path))result.push({type:'ESModule',path,contents:await readFile(path,'utf8')});}return result;}
 const modules=await modulesAt(root);modules.sort((a,b)=>Number(b.path===root+'/index.js')-Number(a.path===root+'/index.js'));
 const schema=await readFile(new URL('../migrations/0002_journal.sql',import.meta.url),'utf8');
 const origin='https://journal.test';
-const editorCode=ts.transpileModule(await readFile(new URL('../src/scripts/journal-editor.ts',import.meta.url),'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}}).outputText.replace(/export\s*\{\s*\};?/g,'');
+const editorBundle=await build({stdin:{contents:"import './src/scripts/journal-editor.ts'; import {EditorView} from '@codemirror/view'; window.testEditorView=EditorView;",resolveDir:fileURLToPath(new URL('../',import.meta.url))},bundle:true,write:false,format:'iife',platform:'browser',target:'es2022'});
+const editorCode=editorBundle.outputFiles[0].text;
 const password='Disposable-journal-test-'+randomBytes(16).toString('hex');const salt=randomBytes(16);
 const auth=JSON.stringify({version:1,salt:salt.toString('base64url'),digest:pbkdf2Sync(password,salt,100000,32,'sha256').toString('base64url'),sessionKey:randomBytes(32).toString('base64url')});
 async function worker(){
@@ -99,8 +100,24 @@ test('existing Markdown article migrates once without changing its URL or replac
 async function editor(mf,cookie,entry,beforeFetch){
  const response=await mf.dispatchFetch(origin+`/admin/journal/edit/${entry.id}/`,{headers:{cookie}});assert.equal(response.status,200);
  const dom=new JSDOM(await response.text(),{url:origin+`/admin/journal/edit/${entry.id}/`,runScripts:'outside-only',pretendToBeVisual:true});
+ // JSDOM has no layout engine; provide the geometry methods used by CodeMirror.
+ dom.window.Range.prototype.getClientRects=()=>[];
+ dom.window.Range.prototype.getBoundingClientRect=()=>({left:0,right:0,top:0,bottom:0,width:0,height:0});
+ const close=dom.window.close.bind(dom.window);
+ dom.window.close=()=>{const root=dom.window.document.querySelector('.cm-editor');if(root&&dom.window.testEditorView)dom.window.testEditorView.findFromDOM(root)?.destroy();close();};
  const calls=[];
- dom.window.fetch=async(path,options)=>{const payload=JSON.parse(options.body);calls.push(payload);if(beforeFetch)await beforeFetch(payload,calls.length);return mf.dispatchFetch(origin+path,{...options,headers:{...options.headers,origin,cookie},redirect:'manual'});};
+ dom.window.fetch=async(path,options)=>{
+  if(options.body instanceof dom.window.FormData){
+   const data=new FormData();
+   for(const [key,value] of options.body.entries()){
+    if(typeof value==='string')data.set(key,value);
+    else {const bytes=await new Promise((resolve,reject)=>{const reader=new dom.window.FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsArrayBuffer(value);});data.set(key,new File([bytes],value.name,{type:value.type}));}
+   }
+   const wire=new Request(origin+path,{method:'POST',body:data});
+   return mf.dispatchFetch(origin+path,{method:'POST',headers:{origin,cookie,'content-type':wire.headers.get('content-type')},body:Buffer.from(await wire.arrayBuffer()),redirect:'manual'});
+  }
+  const payload=JSON.parse(options.body);calls.push(payload);if(beforeFetch)await beforeFetch(payload,calls.length);return mf.dispatchFetch(origin+path,{...options,headers:{...options.headers,origin,cookie},redirect:'manual'});
+ };
  return {dom,calls,start:()=>dom.window.eval(editorCode)};
 }
 function change(dom,selector,value){const field=dom.window.document.querySelector(selector);field.value=value;field.dispatchEvent(new dom.window.Event('input',{bubbles:true}));}
@@ -132,4 +149,42 @@ test('editor offers local recovery, saves the recovered draft and retains local 
   await until(conflict.dom,()=>conflict.dom.window.document.querySelector('[data-save-status]').textContent.includes('其他页面更新'));
   const local=JSON.parse(conflict.dom.window.localStorage.getItem('mcxiaoshan-journal-draft:'+entry.id));assert.equal(local.value.draft.content,'当前页面不能丢失的修改');assert.equal(conflict.calls.length,1);
  }finally{ui?.dom.window.close();conflict?.dom.window.close();await mf.dispose();}
+});
+
+test('inline editor shows real images, keeps code/external URLs as text, and switching modes preserves content and undo',async()=>{
+ const {mf,db,cookie}=await worker();let ui;try{
+  const image='/media/journal/'+randomUUID();
+  const body=`前文\n\n![正文图片](${image})\n\n后文\n\n\`![行内代码](${image})\`\n\n\`\`\`\n![代码块](${image})\n\`\`\`\n\n![外站](https://evil.test/image.png)\n\n<img src="${image}" onerror="alert(1)">`;
+  const entry=await save(mf,cookie,randomUUID(),0,draft({content:body}));ui=await editor(mf,cookie,entry);ui.start();
+  const document=ui.dom.window.document,host=document.querySelector('[data-image-editor]'),textarea=document.querySelector('[name=content]');
+  assert.equal(textarea.hidden,true);assert.equal(host.hidden,false);assert.equal(host.querySelectorAll('img').length,1);assert.equal(host.querySelector('img').getAttribute('src'),image);assert.equal(host.querySelector('img').hasAttribute('onerror'),false);
+  const view=ui.dom.window.testEditorView.findFromDOM(host.querySelector('.cm-editor'));assert.ok(view);
+  document.querySelector('[data-editor-mode=markdown]').click();assert.equal(host.querySelector('img'),null);assert.equal(textarea.value,body);assert.equal(ui.calls.length,0);
+  document.querySelector('[data-editor-mode=images]').click();assert.equal(host.querySelectorAll('img').length,1);assert.equal(textarea.value,body);
+  const from=body.indexOf('后文');view.dispatch({selection:{anchor:from,head:from+2}});document.querySelector('[data-format=bold]').click();assert.match(textarea.value,/\*\*后文\*\*/);
+  view.contentDOM.dispatchEvent(new ui.dom.window.KeyboardEvent('keydown',{key:'z',ctrlKey:true,bubbles:true}));assert.equal(textarea.value,body);
+  view.dispatch({changes:{from:view.state.doc.length,insert:'\n\n新的文字'},userEvent:'input'});document.querySelector('[data-save]').click();
+  assert.equal(view.contentDOM.getAttribute('contenteditable'),'false');
+  await until(ui.dom,()=>document.querySelector('[data-save-status]').textContent.includes('草稿已保存')&&!document.querySelector('fieldset').disabled);
+  assert.equal(view.contentDOM.getAttribute('contenteditable'),'true');
+  const stored=await db.prepare('SELECT draft FROM journal_entries WHERE id=?').bind(entry.id).first();assert.equal(JSON.parse(stored.draft).content,body+'\n\n新的文字');assert.equal(host.querySelectorAll('img').length,1);
+  host.querySelector('img').dispatchEvent(new ui.dom.window.Event('error'));assert.match(host.querySelector('figcaption').textContent,/暂时无法显示/);assert.equal(textarea.value,body+'\n\n新的文字');
+ }finally{ui?.dom.window.close();await mf.dispose();}
+});
+
+test('image upload, DOCX import and local recovery immediately update pictures in the writing area',async()=>{
+ const {mf,db,cookie}=await worker();let ui,recovered;try{
+  const entry=await save(mf,cookie,randomUUID());ui=await editor(mf,cookie,entry);ui.start();
+  const document=ui.dom.window.document,host=document.querySelector('[data-image-editor]');
+  const view=ui.dom.window.testEditorView.findFromDOM(host.querySelector('.cm-editor'));assert.ok(view);
+  view.dispatch({selection:{anchor:view.state.doc.length}});
+  const imageInput=document.querySelector('[data-image-file]');Object.defineProperty(imageInput,'files',{value:[new ui.dom.window.File([png],'正文图.png',{type:'image/png'})]});imageInput.dispatchEvent(new ui.dom.window.Event('change'));
+  await until(ui.dom,()=>document.querySelector('[data-save-status]').textContent.includes('图片已插入'));
+  assert.equal(host.querySelectorAll('img').length,1);assert.match(document.querySelector('[name=content]').value,/这是正文。\n!\[图片\]/);
+  ui.dom.window.confirm=()=>true;const fileInput=document.querySelector('[data-document-file]');Object.defineProperty(fileInput,'files',{value:[new ui.dom.window.File([docx()],'带图.docx')]});fileInput.dispatchEvent(new ui.dom.window.Event('change'));
+  await until(ui.dom,()=>document.querySelector('[data-save-status]').textContent.includes('导入完成'));
+  assert.equal(host.querySelectorAll('img').length,1);assert.match(document.querySelector('[name=content]').value,/# 导入的小标题/);
+  const stored=await db.prepare('SELECT * FROM journal_entries WHERE id=?').bind(entry.id).first();const savedBody=JSON.parse(stored.draft).content;assert.equal(document.querySelector('[name=content]').value,savedBody);
+  recovered=await editor(mf,cookie,stored);recovered.dom.window.localStorage.setItem('mcxiaoshan-journal-draft:'+entry.id,JSON.stringify({value:{slug:entry.slug,draft:draft({content:savedBody+'\n\n恢复的文字'})}}));recovered.start();recovered.dom.window.document.querySelector('[data-restore-local]').click();assert.equal(recovered.dom.window.document.querySelectorAll('[data-image-editor] img').length,1);assert.match(recovered.dom.window.document.querySelector('[name=content]').value,/恢复的文字/);
+ }finally{ui?.dom.window.close();recovered?.dom.window.close();await mf.dispose();}
 });

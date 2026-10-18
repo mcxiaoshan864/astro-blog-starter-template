@@ -26,11 +26,13 @@ const slug=entry?.slug || `note-${id.slice(0,8)}`;
       <div class="writing-head"><label for="article-content">正文</label><div class="imports"><button class="button glass-control" type="button" data-import>导入文件 ↥</button><button class="button glass-control" type="button" data-image>插入图片 ＋</button></div></div>
       <input class="sr-only" tabindex="-1" type="file" data-document-file accept=".txt,.md,.doc,.docx" aria-label="选择导入文件" />
       <input class="sr-only" tabindex="-1" type="file" data-image-file accept="image/png,image/jpeg,image/gif,image/webp" aria-label="选择正文图片" />
+      <div class="editor-modes" data-editor-modes role="group" aria-label="正文显示方式" hidden><button type="button" data-editor-mode="images" aria-pressed="true">图片直显</button><button type="button" data-editor-mode="markdown" aria-pressed="false">Markdown</button></div>
       <div class="toolbar" role="toolbar" aria-label="正文格式">
         <button type="button" data-format="bold" aria-label="加粗"><strong>B</strong></button><button type="button" data-format="italic" aria-label="斜体"><em>I</em></button><button type="button" data-format="heading" aria-label="二级标题">H₂</button><button type="button" data-format="list" aria-label="无序列表">列表</button><button type="button" data-format="quote" aria-label="引用">引用</button><button type="button" data-format="link" aria-label="链接">链接</button><button type="button" data-format="code" aria-label="代码块">代码</button>
       </div>
       <textarea class="content-input" id="article-content" name="content" rows="20" maxlength="360000" placeholder="写下今天想记住的事……&#10;&#10;可使用 Markdown，也可以用上方按钮添加格式。">{draft.content}</textarea>
-      <div class="writing-foot"><span>支持 Markdown · 文件导入会先生成草稿</span><span data-word-count>0 字</span></div>
+      <div class="image-editor" data-image-editor hidden></div>
+      <div class="writing-foot"><span>图片直接显示 · 可切换 Markdown 编辑链接</span><span data-word-count>0 字</span></div>
       <p class="hint">TXT 限 1 MB、DOC 限 2 MB、DOCX 限 8 MB。DOC 导入正文；DOCX 可保留常见格式和配图。</p>
       <p class="notice" data-import-result role="status" hidden></p>
       <div class="actions"><button class="button glass-control" type="button" data-save>保存草稿</button><button class="button glass-control" type="button" data-preview>预览 ↗</button><button class="button glass-control primary" type="button" data-publish>{entry?.status==='published'?'发布更新':'发布文章'}</button></div>
@@ -54,10 +56,27 @@ const slug=entry?.slug || `note-${id.slice(0,8)}`;
   .writing-head { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin:30px 0 14px; }.writing-head label { margin:0; }.imports { display:flex; gap:8px; flex-wrap:wrap; }.imports .button { min-height:40px; padding:9px 16px; font-size:.7rem; }
   .toolbar { display:flex; gap:3px; flex-wrap:wrap; padding:8px 10px; border:1px solid var(--line); border-radius:20px 20px 0 0; background:var(--glass); }
   .toolbar button { border:0; border-radius:999px; min-width:38px; min-height:36px; padding:6px 12px; background:transparent; color:var(--text-muted); font-size:.75rem; }.toolbar button:hover { background:var(--active); }
+  .editor-modes { display:inline-flex; gap:4px; border:1px solid var(--line); border-radius:999px; padding:4px; margin-bottom:12px; background:var(--glass); }
+  .editor-modes button { min-height:36px; padding:7px 15px; border:0; border-radius:999px; background:transparent; color:var(--text-muted); font-size:.7rem; white-space:nowrap; }
+  .editor-modes button[aria-pressed="true"] { background:var(--active); color:var(--accent); box-shadow:inset 0 0 0 1px var(--line); }
+  .image-editor { border:1px solid var(--line); border-top:0; border-radius:0 0 22px 22px; background:var(--glass); overflow:hidden; }
+  .image-editor[aria-disabled="true"] { opacity:.65; }
+  .image-editor :global(.cm-editor) { color:var(--text-main); min-height:440px; font:16px/1.95 ui-monospace,SFMono-Regular,Consolas,monospace; }
+  .image-editor :global(.cm-editor.cm-focused) { outline:2px solid var(--accent); outline-offset:-2px; }
+  .image-editor :global(.cm-scroller) { overflow-wrap:anywhere; font:inherit; }
+  .image-editor :global(.cm-content) { padding:24px 0; caret-color:var(--text-main); }
+  .image-editor :global(.cm-line) { padding:0 24px; }
+  .image-editor :global(.cm-cursor) { border-left-color:var(--text-main); }
+  .image-editor :global(.cm-placeholder) { color:var(--text-muted); }
+  .image-editor :global(.cm-selectionBackground) { background:var(--active)!important; }
+  .image-editor :global(.journal-inline-image) { display:block; margin:14px 24px 20px; padding:12px; border:1px solid var(--line); border-radius:20px; background:var(--glass); max-width:calc(100% - 48px); overflow:hidden; }
+  .image-editor :global(.journal-inline-image img) { display:block; width:auto; max-width:100%; max-height:440px; height:auto; margin:0 auto; border-radius:12px; object-fit:contain; }
+  .image-editor :global(.journal-inline-image figcaption) { color:var(--text-muted); font:12px/1.6 var(--font-body, sans-serif); text-align:center; overflow-wrap:anywhere; padding:10px 4px 0; }
+  .image-editor :global(.image-unavailable figcaption) { padding:12px 4px; }
   .content-input { border-radius:0 0 22px 22px!important; border-top:0!important; padding:24px!important; min-height:440px; font:16px/1.95 ui-monospace,SFMono-Regular,Consolas,monospace!important; tab-size:2; }
   .writing-foot { display:flex; justify-content:space-between; gap:16px; font-size:.65rem; color:var(--text-muted); margin-top:12px; }
   .actions { display:flex; flex-wrap:wrap; gap:10px; margin:30px 0 20px; }.actions .button { font-size:.8rem; min-height:48px; }.primary { color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent),var(--glass-shadow); margin-left:auto; }
   .secondary-actions { display:flex; flex-wrap:wrap; gap:20px; margin-top:24px; }.secondary-actions button { border:0; background:transparent; padding:6px 0; font-size:.72rem; color:var(--text-muted); }
   [hidden] { display:none!important; }.recovery .button { font-size:.7rem; margin:6px 8px 0 0; padding:8px 14px; min-height:38px; }
-  @media(max-width:700px) { .topline { flex-direction:column; gap:10px; }.heading { align-items:flex-start; flex-direction:column; gap:0; }.heading p { text-align:left; }.metadata { grid-template-columns:1fr; gap:0; }.content-input { padding:18px!important; min-height:380px; }.actions { display:grid; grid-template-columns:1fr 1fr; }.primary { grid-column:1/-1; margin:0; }.writing-foot { font-size:.6rem; }.writing-foot span:first-child { max-width:70%; } }
+  @media(max-width:700px) { .topline { flex-direction:column; gap:10px; }.heading { align-items:flex-start; flex-direction:column; gap:0; }.heading p { text-align:left; }.metadata { grid-template-columns:1fr; gap:0; }.content-input { padding:18px!important; min-height:380px; }.image-editor :global(.cm-editor) { min-height:380px; }.image-editor :global(.cm-content) { padding:18px 0; }.image-editor :global(.cm-line) { padding-inline:18px; }.image-editor :global(.journal-inline-image) { margin-inline:12px; max-width:calc(100% - 24px); padding:8px; border-radius:16px; }.image-editor :global(.journal-inline-image img) { max-height:340px; }.actions { display:grid; grid-template-columns:1fr 1fr; }.primary { grid-column:1/-1; margin:0; }.writing-foot { font-size:.6rem; }.writing-foot span:first-child { max-width:70%; } }
 </style>

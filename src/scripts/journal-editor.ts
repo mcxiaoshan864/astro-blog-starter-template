@@ -1,4 +1,4 @@
-export {};
+import { mountImageEditor } from './journal-images';
 type Draft = {title:string;description:string;author:string;date:string;content:string};
 type Entry = {id:string;slug:string;draft:string;revision:number;status:string;first_published_at:number|null};
 class EditorError extends Error { constructor(message:string,public code=''){super(message);} }
@@ -20,6 +20,7 @@ function setup(form:HTMLFormElement){
   const unpublish=form.querySelector<HTMLButtonElement>('[data-unpublish]')!;
   const fileInput=form.querySelector<HTMLInputElement>('[data-document-file]')!;
   const imageInput=form.querySelector<HTMLInputElement>('[data-image-file]')!;
+  let imageEditor:ReturnType<typeof mountImageEditor>|undefined;
   const storageKey=`mcxiaoshan-journal-draft:${id}`;
   const read=()=>({slug:fields.slug.value,draft:Object.fromEntries(['title','description','author','date','content'].map(key=>[key,fields[key].value])) as Draft});
   const fingerprint=(value:ReturnType<typeof read>)=>JSON.stringify(value);
@@ -29,7 +30,7 @@ function setup(form:HTMLFormElement){
   const tell=(message:string,error=false)=>{status.textContent=message;status.style.color=error?'var(--accent)':'';};
   const localSave=()=>{try{localStorage.setItem(storageKey,JSON.stringify({value:read(),updatedAt:Date.now()}));}catch{}};
   const localClear=()=>{try{localStorage.removeItem(storageKey);}catch{}};
-  const counter=()=>{wordCount.textContent=`${[...content.value].length.toLocaleString()} 字`;};
+  const counter=()=>{imageEditor?.sync();wordCount.textContent=`${[...content.value].length.toLocaleString()} 字`;};
   const syncState=(entry:Entry)=>{
     revision=entry.revision;state=entry.status;form.dataset.revision=String(revision);
     stateText.textContent=state==='published'?'已发布 · 修改会先保存为草稿':'私密草稿';
@@ -79,7 +80,7 @@ function setup(form:HTMLFormElement){
     if(operation==='publish'&&(!fields.title.value.trim()||!content.value.trim())){tell('发布前请填写标题和正文。',true);return;}
     if(operation==='trash'&&!window.confirm('把这篇文章移入回收站？公开文章将下线，之后可以恢复为草稿。'))return;
     if(operation==='unpublish'&&!window.confirm('撤回后访客将无法访问这篇文章。内容会保留为草稿，确认撤回吗？'))return;
-    busy=true;fieldset.disabled=true;
+    busy=true;fieldset.disabled=true;imageEditor?.setDisabled(true);
     try{
       await flush();
       if(operation==='save'){tell('草稿已保存。');return;}
@@ -93,10 +94,11 @@ function setup(form:HTMLFormElement){
       }else if(operation==='unpublish'){tell('已撤回，文章保留为私密草稿。');}
       else if(operation==='trash'){localClear();navigating=true;window.location.assign('/admin/journal/?filter=trash');}
     }catch(error){tell(error instanceof Error?error.message:'操作未完成，请稍后重试。',true);}
-    finally{busy=false;fieldset.disabled=false;}
+    finally{busy=false;fieldset.disabled=false;imageEditor?.setDisabled(false);}
   };
   for(const key of ['save','preview','publish','unpublish','trash'])form.querySelector(`[data-${key}]`)?.addEventListener('click',()=>{void act(key);});
   function insert(before:string,after='',placeholder='文字'){
+    if(imageEditor){imageEditor.insert(before,after,placeholder);return;}
     const start=content.selectionStart,end=content.selectionEnd;
     const selected=content.value.slice(start,end)||placeholder;
     content.setRangeText(before+selected+after,start,end,'select');content.focus();changed();
@@ -120,7 +122,7 @@ function setup(form:HTMLFormElement){
   const upload=async(file:File,image:boolean)=>{
     if(busy)return;
     if(!image&&content.value.trim()&&!window.confirm('导入文件会替换当前正文。建议先导出当前草稿，确认继续导入吗？'))return;
-    busy=true;fieldset.disabled=true;localSave();
+    busy=true;fieldset.disabled=true;imageEditor?.setDisabled(true);localSave();
     try{
       await flush();tell(image?'正在处理图片…':'正在转换文件…');
       const data=new FormData();data.set('id',id);data.set('file',image?await compress(file):file);
@@ -132,7 +134,7 @@ function setup(form:HTMLFormElement){
       }
       await flush();tell(image?'图片已插入，草稿已保存。':'导入完成，草稿已保存。');
     }catch(error){tell(error instanceof Error?error.message:'导入失败，原草稿仍在。',true);}
-    finally{busy=false;fieldset.disabled=false;fileInput.value='';imageInput.value='';}
+    finally{busy=false;fieldset.disabled=false;imageEditor?.setDisabled(false);fileInput.value='';imageInput.value='';}
   };
   fileInput.addEventListener('change',()=>{if(fileInput.files?.[0])void upload(fileInput.files[0],false);});
   imageInput.addEventListener('change',()=>{if(imageInput.files?.[0])void upload(imageInput.files[0],true);});
@@ -157,5 +159,11 @@ function setup(form:HTMLFormElement){
   }catch{}
   window.addEventListener('beforeunload',event=>{if(!navigating&&dirty()){localSave();event.preventDefault();event.returnValue='';}});
   window.addEventListener('pagehide',()=>{if(dirty())localSave();});
+  const editorHost=form.querySelector<HTMLElement>('[data-image-editor]');
+  const editorMode=form.querySelector<HTMLElement>('[data-editor-modes]');
+  if(editorHost&&editorMode){
+    try{imageEditor=mountImageEditor(content,editorHost,editorMode);}
+    catch{content.hidden=false;editorHost.hidden=true;editorMode.hidden=true;}
+  }
   counter();
 }
