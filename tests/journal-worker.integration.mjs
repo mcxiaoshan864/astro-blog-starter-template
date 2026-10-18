@@ -216,11 +216,45 @@ test('GIF, animated WebP and APNG keep every original byte from editor upload to
   for(const animation of uploaded){const response=await mf.dispatchFetch(origin+animation.path);assert.equal(response.status,200);assert.deepEqual(Buffer.from(await response.arrayBuffer()),animation.bytes);}
   const count=await db.prepare('SELECT COUNT(*) AS count FROM journal_assets WHERE entry_id=?').bind(entry.id).first();
   for(const animation of animations){
-   const oversized=Buffer.concat([animation.bytes,Buffer.alloc(750001-animation.bytes.length)]);
+   const oversized=Buffer.concat([animation.bytes,Buffer.alloc(1500001-animation.bytes.length)]);
    Object.defineProperty(input,'files',{configurable:true,value:[new ui.dom.window.File([oversized],'大动图.'+animation.extension,{type:'image/jpeg'})]});input.dispatchEvent(new ui.dom.window.Event('change'));
-   await until(ui.dom,()=>document.querySelector('[data-save-status]').textContent.includes('这张动图超过 750 KB')&&!document.querySelector('fieldset').disabled);
+   await until(ui.dom,()=>document.querySelector('[data-save-status]').textContent.includes('这张动图超过 1.5 MB')&&!document.querySelector('fieldset').disabled);
+   const feedback=document.querySelector('[data-upload-status]');assert.equal(feedback.hidden,false);assert.equal(feedback.getAttribute('role'),'alert');assert.match(feedback.textContent,/1\.5 MB/);
    assert.equal(host.querySelectorAll('img').length,3);
   }
   const after=await db.prepare('SELECT COUNT(*) AS count FROM journal_assets WHERE entry_id=?').bind(entry.id).first();assert.equal(after.count,count.count);
+ }finally{ui?.dom.window.close();await mf.dispose();}
+});
+
+test('a GIF larger than the old 750 KB limit uploads into a completely blank new article with visible feedback and unchanged animation bytes',async()=>{
+ const {mf,db,cookie}=await worker();let ui;try{
+  // CI uses an original generated GIF with a valid comment extension. A local path
+  // exercises the user's exact original file without adding their upload to git.
+  const base=animations[0].bytes,comments=[base.subarray(0,-1),Buffer.from([0x21,0xfe])];
+  for(let i=0;i<3608;i++)comments.push(Buffer.from([255]),Buffer.alloc(255,32));
+  comments.push(Buffer.from([0,0x3b]));
+  const bytes=process.env.JOURNAL_TEST_GIF?await readFile(process.env.JOURNAL_TEST_GIF):Buffer.concat(comments);
+  assert.ok(bytes.length>750000&&bytes.length<=1500000);
+  const id=randomUUID();ui=await editor(mf,cookie,{id});ui.start();
+  const document=ui.dom.window.document,input=document.querySelector('[data-image-file]'),host=document.querySelector('[data-image-editor]'),feedback=document.querySelector('[data-upload-status]');
+  assert.equal(document.querySelector('[name=content]').value,'');assert.equal(document.querySelector('[name=title]').value,'');assert.equal(document.querySelector('[data-journal-editor]').dataset.revision,'0');
+  Object.defineProperty(input,'files',{configurable:true,value:[new ui.dom.window.File([bytes],'1952.gif',{type:'image/gif'})]});input.dispatchEvent(new ui.dom.window.Event('change'));
+  assert.equal(feedback.hidden,false);assert.match(feedback.textContent,/正在读取图片/);
+  await until(ui.dom,()=>feedback.textContent.includes('图片已插入，草稿已保存')&&!document.querySelector('fieldset').disabled);
+  assert.equal(feedback.classList.contains('error'),false);assert.equal(host.querySelectorAll('img').length,1);
+  const path=host.querySelector('img').getAttribute('src');
+  const stored=await db.prepare('SELECT * FROM journal_entries WHERE id=?').bind(id).first();assert.ok(stored);assert.equal(stored.status,'draft');assert.ok(JSON.parse(stored.draft).content.includes(path));
+  assert.equal((await mf.dispatchFetch(origin+path)).status,404);
+  const privateImage=await mf.dispatchFetch(origin+path,{headers:{cookie}});assert.equal(privateImage.status,200);assert.equal(privateImage.headers.get('content-type'),'image/gif');assert.deepEqual(Buffer.from(await privateImage.arrayBuffer()),bytes);
+  change(ui.dom,'[name=title]','动图验证');document.querySelector('[data-publish]').click();
+  await until(ui.dom,()=>document.querySelector('[data-save-status]').textContent.includes('已发布，访客现在可以')&&!document.querySelector('fieldset').disabled);
+  const publicImage=await mf.dispatchFetch(origin+path);assert.equal(publicImage.status,200);assert.equal(publicImage.headers.get('content-type'),'image/gif');assert.deepEqual(Buffer.from(await publicImage.arrayBuffer()),bytes);
+  const excessive=Buffer.concat([base,Buffer.alloc(1500001-base.length)]);const rejected=await upload(mf,cookie,id,'too-large.gif',excessive,true);assert.equal(rejected.status,413);assert.match((await rejected.json()).message,/1\.5 MB/);
+  // Server failures also have feedback beside the image button, not only at the top.
+  const before=document.querySelector('[name=content]').value;
+  ui.dom.window.fetch=async()=>new Response(JSON.stringify({message:'上传服务暂时不可用，请重试。'}),{status:503,headers:{'content-type':'application/json'}});
+  Object.defineProperty(input,'files',{configurable:true,value:[new ui.dom.window.File([base],'retry.gif',{type:'image/gif'})]});input.dispatchEvent(new ui.dom.window.Event('change'));
+  await until(ui.dom,()=>feedback.textContent.includes('上传服务暂时不可用')&&!document.querySelector('fieldset').disabled);
+  assert.equal(feedback.hidden,false);assert.equal(feedback.getAttribute('role'),'alert');assert.equal(document.querySelector('[name=content]').value,before);assert.equal(host.querySelectorAll('img').length,1);
  }finally{ui?.dom.window.close();await mf.dispose();}
 });

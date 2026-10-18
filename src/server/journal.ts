@@ -2,6 +2,7 @@ import { marked } from 'marked';
 import sanitizeHtml from 'sanitize-html';
 import { boundedText } from './guestbook';
 import { sameOrigin } from './admin-auth';
+import { MAX_IMAGE_BYTES, IMAGE_SIZE_LABEL } from '../constants/journal-media';
 
 export type JournalEnvironment = Partial<Pick<Cloudflare.Env, 'GUESTBOOK_DB'>>;
 export interface Draft { title: string; description: string; author: string; date: string; content: string }
@@ -130,7 +131,7 @@ export function imageMime(data: Uint8Array): string | null {
 export async function storeImage(env: JournalEnvironment, entryId: string, data: Uint8Array) {
   const mime = imageMime(data);
   if (!mime) throw new JournalError(415, 'image', '图片仅支持 PNG、JPEG、GIF 或 WebP。');
-  if (data.length > 750000) throw new JournalError(413, 'image', '单张图片请小于 750 KB，可先压缩后上传。');
+  if (data.length > MAX_IMAGE_BYTES) throw new JournalError(413, 'image', `单张图片请不超过 ${IMAGE_SIZE_LABEL}，可先压缩后上传。`);
   const entry = await getEntry(env, entryId);
   if (!entry || entry.status === 'trash') throw new JournalError(404, 'missing', '请先保存草稿，再上传图片。');
   const count = await database(env).prepare('SELECT COUNT(*) AS count FROM journal_assets WHERE entry_id = ?').bind(entryId).first<{count:number}>();

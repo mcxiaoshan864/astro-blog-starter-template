@@ -17,6 +17,7 @@ function setup(form:HTMLFormElement){
   const wordCount=document.querySelector<HTMLElement>('[data-word-count]')!;
   const recovery=document.querySelector<HTMLElement>('[data-recovery]')!;
   const importResult=form.querySelector<HTMLElement>('[data-import-result]')!;
+  const uploadStatus=form.querySelector<HTMLElement>('[data-upload-status]')!;
   const publish=form.querySelector<HTMLButtonElement>('[data-publish]')!;
   const unpublish=form.querySelector<HTMLButtonElement>('[data-unpublish]')!;
   const fileInput=form.querySelector<HTMLInputElement>('[data-document-file]')!;
@@ -29,6 +30,10 @@ function setup(form:HTMLFormElement){
   let timer:ReturnType<typeof setTimeout>|undefined,saving:Promise<void>|undefined,busy=false,conflicted=false,navigating=false;
   const dirty=()=>fingerprint(read())!==saved;
   const tell=(message:string,error=false)=>{status.textContent=message;status.style.color=error?'var(--accent)':'';};
+  const uploadTell=(message:string,error=false)=>{
+    tell(message,error);uploadStatus.hidden=false;uploadStatus.textContent=message;
+    uploadStatus.classList.toggle('error',error);uploadStatus.setAttribute('role',error?'alert':'status');
+  };
   const localSave=()=>{try{localStorage.setItem(storageKey,JSON.stringify({value:read(),updatedAt:Date.now()}));}catch{}};
   const localClear=()=>{try{localStorage.removeItem(storageKey);}catch{}};
   const counter=()=>{imageEditor?.sync();wordCount.textContent=`${[...content.value].length.toLocaleString()} 字`;};
@@ -113,17 +118,21 @@ function setup(form:HTMLFormElement){
     if(busy)return;
     if(!image&&content.value.trim()&&!window.confirm('导入文件会替换当前正文。建议先导出当前草稿，确认继续导入吗？'))return;
     busy=true;fieldset.disabled=true;imageEditor?.setDisabled(true);localSave();
+    uploadTell(image?`正在读取图片「${file.name}」…`:`正在读取文件「${file.name}」…`);
     try{
-      await flush();tell(image?'正在处理图片…':'正在转换文件…');
-      const data=new FormData();data.set('id',id);data.set('file',image?await prepareJournalImage(file):file);
+      const prepared=image?await prepareJournalImage(file):file;
+      uploadTell('正在准备草稿…');await flush();
+      uploadTell(image?'正在上传图片，请稍候…':'正在转换文件，请稍候…');
+      const data=new FormData();data.set('id',id);data.set('file',prepared);
       const result=await request<{url:string;content:string;title:string;warnings:string[]}>('/admin/journal/import'+(image?'?type=image':''),data);
       if(image){insert(`\n![图片](${result.url})\n`,'','');}
       else{
         content.value=result.content;if(!fields.title.value.trim())fields.title.value=result.title;
         importResult.hidden=false;importResult.textContent=['已导入 '+file.name+'，请预览后再发布。',...(result.warnings||[])].join(' ');changed();
       }
-      await flush();tell(image?'图片已插入，草稿已保存。':'导入完成，草稿已保存。');
-    }catch(error){tell(error instanceof Error?error.message:'导入失败，原草稿仍在。',true);}
+      uploadTell('内容已插入，正在保存草稿…');
+      await flush();uploadTell(image?'图片已插入，草稿已保存。':'导入完成，草稿已保存。');
+    }catch(error){uploadTell(error instanceof Error?error.message:'导入失败，原草稿仍在。',true);}
     finally{busy=false;fieldset.disabled=false;imageEditor?.setDisabled(false);fileInput.value='';imageInput.value='';}
   };
   fileInput.addEventListener('change',()=>{if(fileInput.files?.[0])void upload(fileInput.files[0],false);});

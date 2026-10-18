@@ -2,6 +2,7 @@
 export const prerender=false;
 import AdminLayout from '../../../../layouts/AdminLayout.astro';
 import { validId,getEntry,emptyDraft,type Draft } from '../../../../server/journal';
+import { IMAGE_SIZE_LABEL } from '../../../../constants/journal-media';
 if(!Astro.locals.adminSession)return Astro.redirect('/admin/login/',303);
 const id=Astro.params.id || '';
 if(!validId(id))return Astro.redirect('/admin/journal/',303);
@@ -26,6 +27,7 @@ const slug=entry?.slug || `note-${id.slice(0,8)}`;
       <div class="writing-head"><label for="article-content">正文</label><div class="imports"><button class="button glass-control" type="button" data-import>导入文件 ↥</button><button class="button glass-control" type="button" data-image>插入图片 ＋</button></div></div>
       <input class="sr-only" tabindex="-1" type="file" data-document-file accept=".txt,.md,.doc,.docx" aria-label="选择导入文件" />
       <input class="sr-only" tabindex="-1" type="file" data-image-file accept="image/png,image/jpeg,image/gif,image/webp" aria-label="选择正文图片" />
+      <p class="notice upload-status" data-upload-status role="status" aria-live="polite" hidden></p>
       <div class="editor-modes" data-editor-modes role="group" aria-label="正文显示方式" hidden><button type="button" data-editor-mode="images" aria-pressed="true">图片直显</button><button type="button" data-editor-mode="markdown" aria-pressed="false">Markdown</button></div>
       <div class="toolbar" role="toolbar" aria-label="正文格式">
         <button type="button" data-format="bold" aria-label="加粗"><strong>B</strong></button><button type="button" data-format="italic" aria-label="斜体"><em>I</em></button><button type="button" data-format="heading" aria-label="二级标题">H₂</button><button type="button" data-format="list" aria-label="无序列表">列表</button><button type="button" data-format="quote" aria-label="引用">引用</button><button type="button" data-format="link" aria-label="链接">链接</button><button type="button" data-format="code" aria-label="代码块">代码</button>
@@ -33,7 +35,7 @@ const slug=entry?.slug || `note-${id.slice(0,8)}`;
       <textarea class="content-input" id="article-content" name="content" rows="20" maxlength="360000" placeholder="写下今天想记住的事……&#10;&#10;可使用 Markdown，也可以用上方按钮添加格式。">{draft.content}</textarea>
       <div class="image-editor" data-image-editor hidden></div>
       <div class="writing-foot"><span>图片直接显示 · 可切换 Markdown 编辑链接</span><span data-word-count>0 字</span></div>
-      <p class="hint">GIF、动态 WebP 和 APNG 保留动画原文件，单张限 750 KB；静态大图会尝试自动压缩。</p>
+      <p class="hint">GIF、动态 WebP 和 APNG 保留动画原文件，单张限 {IMAGE_SIZE_LABEL}；静态大图会尝试自动压缩。</p>
       <p class="hint">TXT 限 1 MB、DOC 限 2 MB、DOCX 限 8 MB。DOC 导入正文；DOCX 可保留常见格式和配图。</p>
       <p class="notice" data-import-result role="status" hidden></p>
       <div class="actions"><button class="button glass-control" type="button" data-save>保存草稿</button><button class="button glass-control" type="button" data-preview>预览 ↗</button><button class="button glass-control primary" type="button" data-publish>{entry?.status==='published'?'发布更新':'发布文章'}</button></div>

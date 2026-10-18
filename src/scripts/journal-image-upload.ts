@@ -1,4 +1,4 @@
-const MAX_IMAGE_BYTES=750000;
+import { MAX_IMAGE_BYTES, IMAGE_SIZE_LABEL, STATIC_IMAGE_TARGET_BYTES } from '../constants/journal-media';
 const text=(data:Uint8Array,start:number,end:number)=>String.fromCharCode(...data.slice(start,end));
 
 async function imageInfo(file:File):Promise<{mime:string;animated:boolean}>{
@@ -30,9 +30,9 @@ async function imageInfo(file:File):Promise<{mime:string;animated:boolean}>{
 export async function prepareJournalImage(file:File):Promise<File>{
   const info=await imageInfo(file);
   if(info.animated&&file.size>MAX_IMAGE_BYTES){
-    throw new Error('这张动图超过 750 KB。为保留动画不会转成静图，请先缩小动图文件后重新上传。');
+    throw new Error(`这张动图超过 ${IMAGE_SIZE_LABEL}。为保留动画不会转成静图，请先缩小动图文件后重新上传。`);
   }
-  if(file.size<=MAX_IMAGE_BYTES||info.animated)return new File([file],file.name,{type:info.mime});
+  if(file.size<=STATIC_IMAGE_TARGET_BYTES||info.animated)return new File([file],file.name,{type:info.mime});
   const bitmap=await createImageBitmap(file);
   const scale=Math.min(1,1920/Math.max(bitmap.width,bitmap.height));
   const canvas=document.createElement('canvas');
@@ -42,7 +42,7 @@ export async function prepareJournalImage(file:File):Promise<File>{
   let blob:Blob|null=null;
   for(const quality of [.82,.65,.45]){
     blob=await new Promise<Blob|null>(resolve=>canvas.toBlob(resolve,'image/webp',quality));
-    if(blob&&blob.size<=MAX_IMAGE_BYTES)break;
+    if(blob&&blob.size<=STATIC_IMAGE_TARGET_BYTES)break;
   }
   return blob?new File([blob],file.name+'.webp',{type:blob.type}):file;
 }
