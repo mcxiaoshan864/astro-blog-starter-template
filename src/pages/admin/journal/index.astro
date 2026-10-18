@@ -28,7 +28,7 @@ const date=(timestamp:number)=>new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/S
   <p class="eyebrow">A place for your words</p>
   <div class="heading"><div><h1>日志管理</h1><p class="intro">从一个念头，到一篇可以分享的文章。</p></div><a class="button glass-control" href="/admin/journal/new">写一篇日志 <span aria-hidden="true">＋</span></a></div>
   <nav class="filters" aria-label="文章筛选">{[['all','全部',counts.draft+counts.published],['draft','草稿',counts.draft],['published','已发布',counts.published],['trash','回收站',counts.trash]].map(([key,label,count])=><a class:list={['glass-control',{active:filter===key}]} aria-current={filter===key?'page':undefined} href={`?filter=${key}`}>{label} · {count}</a>)}</nav>
-  <form class="search" method="GET"><input type="hidden" name="filter" value={filter} /><label for="search-title">查找文章</label><div><input id="search-title" name="q" value={query} maxlength="100" placeholder="按标题搜索" /><button class="button glass-control">搜索</button></div></form>
+  <form class="search" method="GET"><input type="hidden" name="filter" value={filter} /><label for="search-title">查找文章</label><div class="search-field"><input id="search-title" type="search" name="q" value={query} maxlength="100" placeholder="按标题搜索" /><button type="submit" class="button glass-control">搜索</button></div></form>
   {Astro.url.searchParams.has('saved') && <p class="notice" role="status">操作已完成。</p>}
   {Astro.url.searchParams.has('error') && <p class="notice error" role="alert">操作未完成，请刷新核对文章版本后重试。</p>}
   {unavailable ? <p class="notice error">文章暂时无法读取，请稍后刷新。</p> : entries.length===0 ? <div class="empty"><p>{query?'没有找到匹配的标题。':filter==='trash'?'回收站是空的。':'这里还没有文章。'}</p><p>可以直接在线写，也可以上传 TXT、DOC、DOCX 或 Markdown 文件。</p></div> : <div class="entries">{entries.map(entry=>{
@@ -49,9 +49,11 @@ const date=(timestamp:number)=>new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/S
   .filters .active { box-shadow:inset 0 0 0 1px var(--accent); color:var(--accent); }
   .search { margin-bottom:28px; max-width:480px; }
   .search label { font-size:.7rem; }
-  .search>div { display:flex; gap:10px; }
-  .search input { min-height:44px; font-size:.85rem; }
-  .search button { min-height:44px; font-size:.75rem; }
+  .search-field { display:flex; align-items:center; gap:6px; padding:5px; border:1px solid var(--line); border-radius:999px; background:var(--glass); box-shadow:inset 0 1px 0 var(--glass-sheen); }
+  .search-field:focus-within { outline:2px solid var(--accent); outline-offset:3px; }
+  .search .search-field input { flex:1 1 0; width:0; min-width:0; min-height:44px; border:0; border-radius:999px; padding:10px 14px; background:transparent; box-shadow:none; font-size:.85rem; }
+  .search .search-field input:focus-visible { outline:none; }
+  .search .search-field button { flex:0 0 auto; min-width:80px; min-height:44px; padding:10px 20px; border-radius:999px; font-size:.75rem; line-height:1.4; white-space:nowrap; }
   .empty { padding:32px 0; color:var(--text-muted); font-size:.85rem; }
   .entries article { display:flex; gap:28px; justify-content:space-between; align-items:center; border-top:1px solid var(--line); padding:28px 0; }
   .entry-title { min-width:0; }
