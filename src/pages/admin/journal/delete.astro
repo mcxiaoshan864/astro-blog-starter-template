@@ -1,0 +1,43 @@
+---
+export const prerender=false;
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { database,validId } from '../../../server/journal';
+if(!Astro.locals.adminSession)return Astro.redirect('/admin/login/',303);
+const all=Astro.url.searchParams.get('all')==='1';
+const id=Astro.url.searchParams.get('id');
+if((all&&id)||(!all&&(!id||!validId(id))))return Astro.redirect('/admin/journal/?filter=trash&error=1',303);
+type Item={id:string;revision:number;title:string};
+let items:Item[]=[],unavailable=false;
+try{
+  const db=database(Astro.locals.runtime.env);
+  const statement=all
+    ?db.prepare("SELECT id,revision,json_extract(draft,'$.title') AS title FROM journal_entries WHERE status = 'trash' ORDER BY trashed_at DESC,id LIMIT 10001")
+    :db.prepare("SELECT id,revision,json_extract(draft,'$.title') AS title FROM journal_entries WHERE id = ? AND status = 'trash'").bind(id!);
+  items=(await statement.all<Item>()).results;
+  if(items.length>10000)throw new Error('Too many targets');
+}catch{unavailable=true;Astro.response.status=503;}
+const targets=JSON.stringify(items.map(({id,revision})=>({id,revision})));
+---
+<AdminLayout title={all?'清空回收站':'永久删除日志'} wide>
+  <a class="back" href="/admin/journal/?filter=trash">← 返回回收站</a>
+  <p class="eyebrow">Before you let it go</p>
+  <h1>{all?'清空回收站？':'永久删除这篇日志？'}</h1>
+  {unavailable?<p class="notice error">暂时无法读取删除列表，请返回回收站后重试。</p>:items.length===0?<p class="notice">{all?'回收站是空的。':'这篇日志已被恢复或删除，请返回回收站核对。'}</p>:<>
+    <p class="intro">{all?`即将永久删除回收站中的全部 ${items.length} 篇日志。`:'即将永久删除以下日志。'}文章及其上传的配图会一并清除，删除后无法在站内恢复。</p>
+    <ul class="delete-list" aria-label="即将删除的日志">{items.map(item=><li>{item.title||'未命名草稿'}</li>)}</ul>
+    <form method="POST" action="/admin/journal/action">
+      <input type="hidden" name="operation" value="purge" />
+      <input type="hidden" name="targets" value={targets} />
+      <div class="actions"><a class="button glass-control" href="/admin/journal/?filter=trash">取消</a><button class="button glass-control danger" type="submit">{all?'确认清空回收站':'确认永久删除'}</button></div>
+    </form>
+  </>}
+</AdminLayout>
+<style>
+  .back { display:inline-block; margin-bottom:30px; font-size:.75rem; color:var(--text-muted); text-decoration:none; }
+  h1 { line-height:1.4; }.intro { line-height:1.9; }
+  .delete-list { max-height:320px; overflow:auto; padding:0 0 0 22px; margin:24px 0 32px; color:var(--text-main); font-size:.85rem; }
+  .delete-list li { padding:8px 4px; overflow-wrap:anywhere; }
+  .actions { display:flex; flex-wrap:wrap; gap:12px; justify-content:flex-end; }.actions .button { font-size:.8rem; white-space:nowrap; }
+  .danger { color:#9c2525; } :global(html.dark) .danger { color:#ffc7bd; }
+  @media(max-width:500px) { .actions { flex-direction:column-reverse; }.actions .button { width:100%; } }
+</style>

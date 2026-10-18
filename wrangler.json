@@ -23,6 +23,9 @@
 		"enabled": true
 	},
 	"upload_source_maps": true,
+	"triggers": {
+		"crons": ["17 * * * *"]
+	},
 	"vars": {
 		"TURNSTILE_HOSTNAMES": "mcxiaoshan.ccwu.cc"
 	},

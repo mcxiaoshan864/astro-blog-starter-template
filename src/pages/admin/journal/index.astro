@@ -2,6 +2,7 @@
 export const prerender = false;
 import AdminLayout from '../../../layouts/AdminLayout.astro';
 import { database, type Entry, type Draft } from '../../../server/journal';
+import { TRASH_RETENTION_DAYS,TRASH_RETENTION_SECONDS } from '../../../constants/journal-trash';
 if (!Astro.locals.adminSession) return Astro.redirect('/admin/login/',303);
 const requested = Astro.url.searchParams.get('filter');
 const filter = ['draft','published','trash'].includes(requested || '') ? requested! : 'all';
@@ -18,9 +19,13 @@ try {
   const search=query ? " AND json_extract(draft,'$.title') LIKE ?" : '';
   if(query)values.push('%'+query+'%');
   total=(await db.prepare(`SELECT COUNT(*) AS count FROM journal_entries WHERE ${where}${search}`).bind(...values).first<{count:number}>())?.count || 0;
-  entries=(await db.prepare(`SELECT * FROM journal_entries WHERE ${where}${search} ORDER BY saved_at DESC,id DESC LIMIT 20 OFFSET ?`).bind(...values,(page-1)*20).all<Entry>()).results;
+  entries=(await db.prepare(`SELECT * FROM journal_entries WHERE ${where}${search} ORDER BY ${filter==='trash'?'trashed_at':'saved_at'} DESC,id DESC LIMIT 20 OFFSET ?`).bind(...values,(page-1)*20).all<Entry>()).results;
 } catch { unavailable=true; Astro.response.status=503; }
 const href=(number:number)=>`?filter=${filter}&q=${encodeURIComponent(query)}&page=${number}`;
+const now=Math.floor(Date.now()/1000);
+const expiryDate=(timestamp:number)=>new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false}).format(timestamp*1000);
+const deleted=Math.min(10000,Math.max(0,Number(Astro.url.searchParams.get('deleted'))||0));
+const changedCount=Math.min(10000,Math.max(0,Number(Astro.url.searchParams.get('changed'))||0));
 const date=(timestamp:number)=>new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}).format(timestamp*1000);
 ---
 <AdminLayout title="日志管理" editor>
@@ -28,13 +33,17 @@ const date=(timestamp:number)=>new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/S
   <p class="eyebrow">A place for your words</p>
   <div class="heading"><div><h1>日志管理</h1><p class="intro">从一个念头，到一篇可以分享的文章。</p></div><a class="button glass-control" href="/admin/journal/new">写一篇日志 <span aria-hidden="true">＋</span></a></div>
   <nav class="filters" aria-label="文章筛选">{[['all','全部',counts.draft+counts.published],['draft','草稿',counts.draft],['published','已发布',counts.published],['trash','回收站',counts.trash]].map(([key,label,count])=><a class:list={['glass-control',{active:filter===key}]} aria-current={filter===key?'page':undefined} href={`?filter=${key}`}>{label} · {count}</a>)}</nav>
+  {filter==='trash' && <div class="trash-policy"><p>移入回收站后保留 {TRASH_RETENTION_DAYS} 天，到期后由系统每小时自动清理。恢复后的文章不再计时。</p>{!unavailable&&counts.trash>0&&<a class="button glass-control danger" href="/admin/journal/delete/?all=1">清空回收站</a>}</div>}
+  {Astro.url.searchParams.has('deleted') && <p class="notice" role="status">已永久删除 {deleted} 篇日志。{changedCount>0&&`另有 ${changedCount} 篇日志状态已变化，已跳过，请核对后再处理。`}</p>}
   <form class="search" method="GET"><input type="hidden" name="filter" value={filter} /><label for="search-title">查找文章</label><div class="search-field"><input id="search-title" type="search" name="q" value={query} maxlength="100" placeholder="按标题搜索" /><button type="submit" class="button glass-control">搜索</button></div></form>
   {Astro.url.searchParams.has('saved') && <p class="notice" role="status">操作已完成。</p>}
   {Astro.url.searchParams.has('error') && <p class="notice error" role="alert">操作未完成，请刷新核对文章版本后重试。</p>}
   {unavailable ? <p class="notice error">文章暂时无法读取，请稍后刷新。</p> : entries.length===0 ? <div class="empty"><p>{query?'没有找到匹配的标题。':filter==='trash'?'回收站是空的。':'这里还没有文章。'}</p><p>可以直接在线写，也可以上传 TXT、DOC、DOCX 或 Markdown 文件。</p></div> : <div class="entries">{entries.map(entry=>{
     const draft=JSON.parse(entry.draft) as Draft;
+    const expires=entry.trashed_at===null?null:entry.trashed_at+TRASH_RETENTION_SECONDS;
+    const days=expires===null?null:Math.max(0,Math.ceil((expires-now)/86400));
     const changed=entry.status==='published' && entry.draft!==entry.published;
-    return <article><div class="entry-title"><span class="badge">{entry.status==='trash'?'回收站':entry.status==='published'?'已发布':'草稿'}{changed?' · 有未发布修改':''}</span><h2><a href={`/admin/journal/edit/${entry.id}/`}>{draft.title || '未命名草稿'}</a></h2><p>{draft.description || '还没有摘要，发布时会从正文自动生成。'}</p><small>保存于 {date(entry.saved_at)} · /blog/{entry.slug}/</small></div><div class="entry-actions">{entry.status==='trash'?<form method="POST" action="/admin/journal/action"><input type="hidden" name="id" value={entry.id} /><input type="hidden" name="revision" value={entry.revision} /><button class="button glass-control" name="operation" value="restore">恢复为草稿</button></form>:<><a class="button glass-control" href={`/admin/journal/edit/${entry.id}/`}>继续编辑 ↗</a><a href={`/admin/journal/preview/${entry.id}/`}>预览草稿</a></>}</div></article>;
+    return <article><div class="entry-title"><span class="badge">{entry.status==='trash'?'回收站':entry.status==='published'?'已发布':'草稿'}{changed?' · 有未发布修改':''}</span><h2>{entry.status==='trash'?(draft.title || '未命名草稿'):<a href={`/admin/journal/edit/${entry.id}/`}>{draft.title || '未命名草稿'}</a>}</h2><p>{draft.description || '还没有摘要，发布时会从正文自动生成。'}</p><small>保存于 {date(entry.saved_at)} · /blog/{entry.slug}/</small>{entry.status==='trash'&&expires!==null&&<p class="expiry">{days===0?'已到期，等待自动清理':`还剩 ${days} 天`} · 预计 {expiryDate(expires)} 后自动清理</p>}</div><div class="entry-actions">{entry.status==='trash'?<><form method="POST" action="/admin/journal/action"><input type="hidden" name="id" value={entry.id} /><input type="hidden" name="revision" value={entry.revision} /><button class="button glass-control" name="operation" value="restore">恢复为草稿</button></form><a class="danger" href={`/admin/journal/delete/?id=${entry.id}`}>永久删除</a></>:<><a class="button glass-control" href={`/admin/journal/edit/${entry.id}/`}>继续编辑 ↗</a><a href={`/admin/journal/preview/${entry.id}/`}>预览草稿</a></>}</div></article>;
   })}</div>}
   {total > 20 && <nav class="pages" aria-label="文章翻页">{page > 1 && <a href={href(page-1)}>← 上一页</a>}<span>{page} / {Math.ceil(total/20)}</span>{total > page * 20 && <a href={href(page+1)}>下一页 →</a>}</nav>}
 </AdminLayout>
@@ -54,6 +63,12 @@ const date=(timestamp:number)=>new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/S
   .search .search-field input { flex:1 1 0; width:0; min-width:0; min-height:44px; border:0; border-radius:999px; padding:10px 14px; background:transparent; box-shadow:none; font-size:.85rem; }
   .search .search-field input:focus-visible { outline:none; }
   .search .search-field button { flex:0 0 auto; min-width:80px; min-height:44px; padding:10px 20px; border-radius:999px; font-size:.75rem; line-height:1.4; white-space:nowrap; }
+  .trash-policy { display:flex; align-items:center; justify-content:space-between; gap:20px; margin:20px 0 28px; }
+  .trash-policy p { color:var(--text-muted); font-size:.75rem; line-height:1.9; margin:0; }
+  .trash-policy .button { flex-shrink:0; font-size:.75rem; min-height:44px; padding:10px 18px; white-space:nowrap; }
+  .danger { color:#9c2525; } :global(html.dark) .danger { color:#ffc7bd; }
+  .entry-title .expiry { margin:14px 0 0; font-size:.68rem; line-height:1.9; color:var(--accent); }
+  @media(max-width:700px) { .trash-policy { align-items:flex-start; flex-direction:column; gap:12px; }.entry-actions { flex-wrap:wrap; } }
   .empty { padding:32px 0; color:var(--text-muted); font-size:.85rem; }
   .entries article { display:flex; gap:28px; justify-content:space-between; align-items:center; border-top:1px solid var(--line); padding:28px 0; }
   .entry-title { min-width:0; }

@@ -10,6 +10,14 @@
 
 每次更新带 revision，通过条件 UPDATE 阻止旧页面覆盖新版本。编辑器把未同步内容保存在当前浏览器的 localStorage，刷新后可选择恢复；同时提供 Markdown 导出。数据库冲突时停止自动覆盖并提示导出核对。
 
+## 回收站
+
+回收站提供单篇“永久删除”和“清空回收站”。点击后先进入删除确认页，列出本次目标，再通过原生 POST 提交，不依赖 JavaScript。清空覆盖回收站全部分页，不局限于当前搜索结果。最终 DELETE 限制 status=trash，逐篇校验确认时的 id/revision；之后被恢复、再次移入或新增的文章会保留，并返回跳过数量。文章及其上传配图通过 D1 外键级联在同一语句内删除。删除计数使用 RETURNING id，避免把配图计入文章数。
+
+`trashed_at` 记录最近一次移入回收站的时间，保留 30 天。列表显示剩余天数与预计清理时间（Asia/Shanghai）。恢复时清空计时，再次移入重新计算；已在回收站的文章不能重复移入以延长保留期。`0004_journal_trash.sql` 给升级前的回收站内容从升级时刻起保留完整 30 天，不依据旧保存时间提前清除。
+
+Astro 5 的自定义 Worker 入口 `src/worker.ts` 保留适配器原有 fetch，仅增加 scheduled handler。`wrangler.json` 的 `17 * * * *` 每小时检查一次，只清理已满 30 天的回收站文章；不需要管理员访问网站。清理结果写入结构化 Worker 日志。数据库迁移必须先于新代码部署。
+
 ## 写作时显示图片
 
 正文编辑区使用 CodeMirror，默认开启“图片直显”。单独一行的本站图片以图片卡片代替 Markdown 链接，夹在文字里的图片在该行后显示。上传图片、导入 DOCX、打开旧稿和恢复本地草稿都会更新显示。“Markdown”按钮可查看和修改原始链接，切换不改动正文，也不触发保存。图片失效会显示提示，原始链接仍保留。
@@ -30,7 +38,7 @@ Markdown 渲染使用明确的 HTML 标签和属性白名单，移除脚本、�
 
 ## 迁移与维护
 
-按顺序应用 `migrations/0002_journal.sql` 和 `0003_import_existing_journal.sql`。后者只插入原有 Codex 日志一次，保留 `/blog/a-glass-website-with-codex/`，不会覆盖数据库中的后续编辑。原 Markdown 文件仍保留在仓库作为历史来源，公开页面以数据库为准，不在撤回时回退到文件内容。
+按顺序应用 `migrations/0002_journal.sql`、`0003_import_existing_journal.sql` 和 `0004_journal_trash.sql`。后者只插入原有 Codex 日志一次，保留 `/blog/a-glass-website-with-codex/`，不会覆盖数据库中的后续编辑。原 Markdown 文件仍保留在仓库作为历史来源，公开页面以数据库为准，不在撤回时回退到文件内容。
 
 `/blog/` 每页 20 篇，公开文章按文章日期排序；动态站点地图 `/sitemap-journal.xml` 仅包含已发布文章。
 

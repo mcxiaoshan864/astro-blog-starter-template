@@ -13,14 +13,17 @@ const root=fileURLToPath(new URL('../dist/_worker.js/',import.meta.url)).replace
 async function modulesAt(dir){const result=[];for(const entry of await readdir(dir,{withFileTypes:true})){const path=dir+'/'+entry.name;if(entry.isDirectory())result.push(...await modulesAt(path));else if(/\.(mjs|js)$/.test(path))result.push({type:'ESModule',path,contents:await readFile(path,'utf8')});}return result;}
 const modules=await modulesAt(root);modules.sort((a,b)=>Number(b.path===root+'/index.js')-Number(a.path===root+'/index.js'));
 const schema=await readFile(new URL('../migrations/0002_journal.sql',import.meta.url),'utf8');
+const trashMigration=await readFile(new URL('../migrations/0004_journal_trash.sql',import.meta.url),'utf8');
 const origin='https://journal.test';
 const editorBundle=await build({stdin:{contents:"import './src/scripts/journal-editor.ts'; import {EditorView} from '@codemirror/view'; window.testEditorView=EditorView;",resolveDir:fileURLToPath(new URL('../',import.meta.url))},bundle:true,write:false,format:'iife',platform:'browser',target:'es2022'});
 const editorCode=editorBundle.outputFiles[0].text;
 const password='Disposable-journal-test-'+randomBytes(16).toString('hex');const salt=randomBytes(16);
 const auth=JSON.stringify({version:1,salt:salt.toString('base64url'),digest:pbkdf2Sync(password,salt,100000,32,'sha256').toString('base64url'),sessionKey:randomBytes(32).toString('base64url')});
-async function worker(){
- const mf=new Miniflare({modules,modulesRoot:root,compatibilityDate:config.compatibility_date,compatibilityFlags:config.compatibility_flags,log:new Log(LogLevel.ERROR),bindings:{ADMIN_AUTH:auth},d1Databases:['GUESTBOOK_DB'],ratelimits:{ADMIN_LOGIN_LIMITER:{simple:{limit:5,period:60}}},serviceBindings:{ASSETS:()=>new Response('Not found',{status:404})}});
+async function worker(beforeTrashMigration){
+ const mf=new Miniflare({modules,modulesRoot:root,compatibilityDate:config.compatibility_date,compatibilityFlags:config.compatibility_flags,unsafeTriggerHandlers:true,log:new Log(LogLevel.ERROR),bindings:{ADMIN_AUTH:auth},d1Databases:['GUESTBOOK_DB'],ratelimits:{ADMIN_LOGIN_LIMITER:{simple:{limit:5,period:60}}},serviceBindings:{ASSETS:()=>new Response('Not found',{status:404})}});
  const db=await mf.getD1Database('GUESTBOOK_DB');await db.batch(schema.split(';').filter(s=>s.trim()).map(s=>db.prepare(s)));
+ if(beforeTrashMigration)await beforeTrashMigration(db);
+ await db.batch(trashMigration.split(';').filter(s=>s.trim()).map(s=>db.prepare(s)));
  const login=await mf.dispatchFetch(origin+'/admin/login/',{method:'POST',headers:{origin,'content-type':'application/x-www-form-urlencoded'},body:new URLSearchParams({username:'admin',password}),redirect:'manual'});assert.equal(login.status,303);
  return {mf,db,cookie:login.headers.get('set-cookie').split(';')[0]};
 }
@@ -257,4 +260,72 @@ test('a GIF larger than the old 750 KB limit uploads into a completely blank new
   await until(ui.dom,()=>feedback.textContent.includes('上传服务暂时不可用')&&!document.querySelector('fieldset').disabled);
   assert.equal(feedback.hidden,false);assert.equal(feedback.getAttribute('role'),'alert');assert.equal(document.querySelector('[name=content]').value,before);assert.equal(host.querySelectorAll('img').length,1);
  }finally{ui?.dom.window.close();await mf.dispose();}
+});
+
+async function reviewDeletion(mf,cookie,query){
+ const response=await mf.dispatchFetch(origin+'/admin/journal/delete/?'+query,{headers:{cookie},redirect:'manual'});assert.equal(response.status,200);
+ const html=await response.text(),dom=new JSDOM(html);const value=dom.window.document.querySelector('[name=targets]')?.value;dom.window.close();
+ return {html,targets:value?JSON.parse(value):[]};
+}
+async function purge(mf,cookie,targets,headers={}){
+ return mf.dispatchFetch(origin+'/admin/journal/action',{method:'POST',headers:{cookie,origin,'content-type':'application/x-www-form-urlencoded',...headers},body:new URLSearchParams({operation:'purge',targets:JSON.stringify(targets)}),redirect:'manual'});
+}
+test('single deletion requires a POST, only removes the reviewed trash revision and cascades its images',async()=>{
+ const {mf,db,cookie}=await worker();try{
+  let entry=await save(mf,cookie,randomUUID(),0,draft({title:'<script>删除标题</script>'}));
+  const imageResponse=await upload(mf,cookie,entry.id,'保留测试.png',png,true);const image=(await imageResponse.json()).url;
+  const active=await save(mf,cookie,randomUUID());let published=await save(mf,cookie,randomUUID());published=await action(mf,cookie,published,'publish');
+  entry=await action(mf,cookie,entry,'trash');assert.ok(entry.trashed_at>0);
+  const review=await reviewDeletion(mf,cookie,'id='+entry.id);assert.equal(review.targets.length,1);assert.doesNotMatch(review.html,/<script>删除标题/);assert.match(review.html,/确认永久删除/);
+  assert.equal((await mf.dispatchFetch(origin+'/admin/journal/action?operation=purge',{headers:{cookie}})).status,405);
+  assert.ok(await db.prepare('SELECT id FROM journal_entries WHERE id=?').bind(entry.id).first(),'GET confirmation must not delete');
+  const list=await(await mf.dispatchFetch(origin+'/admin/journal/?filter=trash',{headers:{cookie}})).text();assert.match(list,/还剩 30 天/);assert.match(list,/清空回收站/);assert.match(list,/每小时自动清理/);
+  assert.equal((await purge(mf,'',review.targets)).status,303);assert.equal((await purge(mf,cookie,review.targets,{origin:'https://evil.test'})).status,403);
+  const forged=await purge(mf,cookie,[{id:active.id,revision:active.revision},{id:published.id,revision:published.revision}]);assert.match(forged.headers.get('location'),/deleted=0&changed=2/);
+  const invalid=await purge(mf,cookie,[review.targets[0],{id:"' OR 1=1 --",revision:1}]);assert.match(invalid.headers.get('location'),/error=1/);assert.ok(await db.prepare('SELECT id FROM journal_entries WHERE id=?').bind(entry.id).first());
+  const deleted=await purge(mf,cookie,review.targets);assert.equal(deleted.status,303);assert.match(deleted.headers.get('location'),/filter=trash&deleted=1&changed=0/);
+  assert.equal(await db.prepare('SELECT id FROM journal_entries WHERE id=?').bind(entry.id).first(),null);assert.equal(await db.prepare('SELECT id FROM journal_assets WHERE entry_id=?').bind(entry.id).first(),null);assert.equal((await mf.dispatchFetch(origin+image,{headers:{cookie}})).status,404);
+  assert.ok(await db.prepare('SELECT id FROM journal_entries WHERE id=?').bind(active.id).first());assert.equal((await mf.dispatchFetch(origin+'/blog/'+published.slug+'/')).status,200);
+ }finally{await mf.dispose();}
+});
+test('clear trash snapshots all pages and protects restored, re-trashed and newly trashed articles during confirmation',async()=>{
+ const {mf,db,cookie}=await worker();try{
+  let first=await action(mf,cookie,await save(mf,cookie,randomUUID()),'trash');
+  const second=await action(mf,cookie,await save(mf,cookie,randomUUID()),'trash');
+  const extra=Array.from({length:21},()=>randomUUID());await db.batch(extra.map(id=>db.prepare("INSERT INTO journal_entries(id,slug,draft,status,revision,trashed_at) VALUES(?,?,?,'trash',2,unixepoch())").bind(id,'bulk-'+id,JSON.stringify(draft()))));
+  const review=await reviewDeletion(mf,cookie,'all=1');assert.equal(review.targets.length,23);assert.match(review.html,/全部 23 篇日志/);
+  first=await action(mf,cookie,first,'restore');assert.equal(first.trashed_at,null);first=await action(mf,cookie,first,'trash');
+  const fresh=await action(mf,cookie,await save(mf,cookie,randomUUID()),'trash');
+  const result=await purge(mf,cookie,review.targets);assert.match(result.headers.get('location'),/deleted=22&changed=1/);
+  assert.equal(await db.prepare('SELECT id FROM journal_entries WHERE id=?').bind(second.id).first(),null);
+  for(const item of [first,fresh])assert.ok(await db.prepare('SELECT id FROM journal_entries WHERE id=?').bind(item.id).first());
+  const again=await reviewDeletion(mf,cookie,'all=1');await purge(mf,cookie,again.targets);assert.equal((await db.prepare("SELECT COUNT(*) AS n FROM journal_entries WHERE status='trash'").first()).n,0);
+  const empty=await reviewDeletion(mf,cookie,'all=1');assert.equal(empty.targets.length,0);assert.match(empty.html,/回收站是空的/);
+ }finally{await mf.dispose();}
+});
+test('scheduled cleanup enforces exactly 30 days, deletes related images and keeps drafts, published and recent trash',async()=>{
+ const {mf,db,cookie}=await worker();try{
+  const now=Math.floor(Date.now()/1000),retention=30*86400;
+  const expired=await action(mf,cookie,await save(mf,cookie,randomUUID()),'trash');
+  const imageId=randomUUID();await db.prepare('INSERT INTO journal_assets(id,entry_id,mime,bytes) VALUES(?,?,?,?)').bind(imageId,expired.id,'image/png',Array.from(png)).run();
+  const recent=await action(mf,cookie,await save(mf,cookie,randomUUID()),'trash');
+  const legacy=await action(mf,cookie,await save(mf,cookie,randomUUID()),'trash');await db.prepare('UPDATE journal_entries SET trashed_at=NULL WHERE id=?').bind(legacy.id).run();
+  const active=await save(mf,cookie,randomUUID());let published=await save(mf,cookie,randomUUID());published=await action(mf,cookie,published,'publish');
+  await db.prepare('UPDATE journal_entries SET trashed_at=? WHERE id IN (?,?,?)').bind(now-retention,expired.id,active.id,published.id).run();
+  await db.prepare('UPDATE journal_entries SET trashed_at=? WHERE id=?').bind(now-retention+1,recent.id).run();
+  const response=await mf.dispatchFetch(origin+'/cdn-cgi/handler/scheduled?time='+now*1000+'&cron='+encodeURIComponent(config.triggers.crons[0]));assert.equal(response.status,200,await response.clone().text());
+  assert.equal(await db.prepare('SELECT id FROM journal_entries WHERE id=?').bind(expired.id).first(),null);assert.equal(await db.prepare('SELECT id FROM journal_assets WHERE id=?').bind(imageId).first(),null);
+  for(const item of [recent,active,published,legacy])assert.ok(await db.prepare('SELECT id FROM journal_entries WHERE id=?').bind(item.id).first());
+  assert.equal((await db.prepare('SELECT trashed_at FROM journal_entries WHERE id=?').bind(legacy.id).first()).trashed_at,now);
+  assert.equal((await mf.dispatchFetch(origin+'/blog/'+published.slug+'/')).status,200);
+  const repeat=await mf.dispatchFetch(origin+'/cdn-cgi/handler/scheduled?time='+now*1000+'&cron='+encodeURIComponent(config.triggers.crons[0]));assert.equal(repeat.status,200);
+ }finally{await mf.dispose();}
+});
+test('migration gives existing trash a full retention period and restore/re-trash starts a new clock',async()=>{
+ const id=randomUUID(),original=JSON.stringify(draft({title:'保留旧回收站内容'}));
+ const {mf,db,cookie}=await worker(async db=>{await db.prepare("INSERT INTO journal_entries(id,slug,draft,status,saved_at) VALUES(?,?,?,'trash',1)").bind(id,'legacy-trash',original).run();});try{
+  let entry=await db.prepare('SELECT * FROM journal_entries WHERE id=?').bind(id).first();assert.equal(entry.draft,original);assert.ok(entry.trashed_at>=Math.floor(Date.now()/1000)-10);
+  await db.prepare('UPDATE journal_entries SET trashed_at=1 WHERE id=?').bind(id).run();entry=await action(mf,cookie,entry,'restore');assert.equal(entry.trashed_at,null);entry=await action(mf,cookie,entry,'trash');assert.ok(entry.trashed_at>=Math.floor(Date.now()/1000)-10);
+  const repeated=await api(mf,cookie,{id,revision:entry.revision,operation:'trash'});assert.equal(repeated.status,400,'repeated trash must not silently extend retention');
+ }finally{await mf.dispose();}
 });

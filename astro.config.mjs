@@ -13,6 +13,7 @@ export default defineConfig({
 		filter: (page) => !/^\/(?:admin|api|media)(?:\/|$)/.test(new URL(page).pathname),
 	})],
 	adapter: cloudflare({
+		workerEntryPoint: { path: './src/worker.ts' },
 		platformProxy: {
 			enabled: true,
 		},

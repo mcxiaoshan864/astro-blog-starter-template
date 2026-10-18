@@ -10,6 +10,7 @@ export interface Entry {
   id: string; slug: string; draft: string; published: string | null;
   status: 'draft' | 'published' | 'trash'; revision: number;
   created_at: number; saved_at: number; first_published_at: number | null; published_at: number | null;
+  trashed_at: number | null;
 }
 export interface PublicEntry { id: string; data: { title: string; description: string; author: string; pubDate: Date; updatedDate?: Date }; content: string }
 export class JournalError extends Error {
@@ -99,8 +100,8 @@ export async function mutateEntry(env: JournalEnvironment, body: Record<string, 
       if (!result.meta.changes) throw new JournalError(409, 'conflict', '文章版本已改变，请刷新核对。');
       return getEntry(env, id);
     } else if (operation === 'unpublish' && current.status === 'published') sql = "UPDATE journal_entries SET status = 'draft', revision = revision + 1 WHERE id = ? AND revision = ?";
-    else if (operation === 'trash') sql = "UPDATE journal_entries SET status = 'trash', revision = revision + 1 WHERE id = ? AND revision = ?";
-    else if (operation === 'restore' && current.status === 'trash') sql = "UPDATE journal_entries SET status = 'draft', revision = revision + 1 WHERE id = ? AND revision = ?";
+    else if (operation === 'trash' && current.status !== 'trash') sql = "UPDATE journal_entries SET status = 'trash', trashed_at = unixepoch(), revision = revision + 1 WHERE id = ? AND revision = ?";
+    else if (operation === 'restore' && current.status === 'trash') sql = "UPDATE journal_entries SET status = 'draft', trashed_at = NULL, revision = revision + 1 WHERE id = ? AND revision = ?";
     else throw new JournalError(400, 'invalid', '未知操作。');
     const result = await db.prepare(sql).bind(id, Number(revision)).run();
     if (!result.meta.changes) throw new JournalError(409, 'conflict', '文章版本已改变，请刷新核对。');
