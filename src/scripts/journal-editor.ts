@@ -1,4 +1,5 @@
 import { mountImageEditor } from './journal-images';
+import { prepareJournalImage } from './journal-image-upload';
 type Draft = {title:string;description:string;author:string;date:string;content:string};
 type Entry = {id:string;slug:string;draft:string;revision:number;status:string;first_published_at:number|null};
 class EditorError extends Error { constructor(message:string,public code=''){super(message);} }
@@ -108,24 +109,13 @@ function setup(form:HTMLFormElement){
   }));
   form.querySelector('[data-import]')?.addEventListener('click',()=>fileInput.click());
   form.querySelector('[data-image]')?.addEventListener('click',()=>imageInput.click());
-  const compress=async(file:File):Promise<File>=>{
-    if(file.size<=750000||file.type==='image/gif')return file;
-    const bitmap=await createImageBitmap(file);
-    const scale=Math.min(1,1920/Math.max(bitmap.width,bitmap.height));
-    const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(bitmap.width*scale));canvas.height=Math.max(1,Math.round(bitmap.height*scale));
-    const context=canvas.getContext('2d');if(!context){bitmap.close();return file;}
-    context.drawImage(bitmap,0,0,canvas.width,canvas.height);bitmap.close();
-    let blob:Blob|null=null;
-    for(const quality of [.82,.65,.45]){blob=await new Promise<Blob|null>(resolve=>canvas.toBlob(resolve,'image/webp',quality));if(blob&&blob.size<=750000)break;}
-    return blob?new File([blob],file.name+'.webp',{type:blob.type}):file;
-  };
   const upload=async(file:File,image:boolean)=>{
     if(busy)return;
     if(!image&&content.value.trim()&&!window.confirm('导入文件会替换当前正文。建议先导出当前草稿，确认继续导入吗？'))return;
     busy=true;fieldset.disabled=true;imageEditor?.setDisabled(true);localSave();
     try{
       await flush();tell(image?'正在处理图片…':'正在转换文件…');
-      const data=new FormData();data.set('id',id);data.set('file',image?await compress(file):file);
+      const data=new FormData();data.set('id',id);data.set('file',image?await prepareJournalImage(file):file);
       const result=await request<{url:string;content:string;title:string;warnings:string[]}>('/admin/journal/import'+(image?'?type=image':''),data);
       if(image){insert(`\n![图片](${result.url})\n`,'','');}
       else{

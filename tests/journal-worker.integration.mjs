@@ -32,6 +32,12 @@ async function save(mf,cookie,id,revision=0,value=draft(),slug='test-'+id.slice(
 async function action(mf,cookie,entry,operation){const response=await api(mf,cookie,{id:entry.id,revision:entry.revision,operation});assert.equal(response.status,200,await response.clone().text());return(await response.json()).entry;}
 async function upload(mf,cookie,id,name,bytes,image=false){const body=new FormData();body.set('id',id);body.set('file',new File([bytes],name));const path=origin+'/admin/journal/import'+(image?'?type=image':'');const wire=new Request(path,{method:'POST',body});return mf.dispatchFetch(path,{method:'POST',headers:{origin,cookie,'content-type':wire.headers.get('content-type')},body:Buffer.from(await wire.arrayBuffer()),redirect:'manual'});}
 const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aF9sAAAAASUVORK5CYII=','base64');
+// Original 2x2 red/blue, two-frame animations generated with Pillow, 120 ms/frame.
+const animations=[
+ ['gif','image/gif','R0lGODlhAgACAIEAAP8AAAAAAAAAAAAAACH/C05FVFNDQVBFMi4wAwEAAAAh+QQADAAAACwAAAAAAgACAAAIBgABCAQQEAAh+QQBDAABACwAAAAAAgACAIEAAP8AAAAAAAAAAAAIBgABCAQQEAA7'],
+ ['webp','image/webp','UklGRsQAAABXRUJQVlA4WAoAAAACAAAAAQAAAQAAQU5JTQYAAAAAAAAAAABBTk1GSgAAAAAAAAAAAAEAAAEAAHgAAAJWUDggMgAAADABAJ0BKgIAAgABQCYloAADcAD+8ut///mwP/bz/wR6Af//0uD//pcH//S4P/SkAAAAQU5NRkYAAAAAAAAAAAABAAABAAB4AAAAVlA4IC4AAAA0AQCdASoCAAIAAAAmJaAAA3AA/vtV4///S4P/+lwf/9Lg/9Lg//rV5Vesq6AA'],
+ ['png','image/png','iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAACGFjVEwAAAACAAAAAPONk3AAAAAaZmNUTAAAAAAAAAACAAAAAgAAAAAAAAAAAAMAGQAAjPSSSQAAABRJREFUeJxj/M/A8J+BgYGBiQEKAB8XAgJPlM6+AAAAGmZjVEwAAAABAAAAAgAAAAIAAAAAAAAAAAADABkAABeHeJ0AAAAYZmRBVAAAAAJ4nGNkYPj/n4GBgYGJAQoAHRkCAunm7jEAAAAASUVORK5CYII='],
+].map(([extension,mime,data])=>({extension,mime,bytes:Buffer.from(data,'base64')}));
 function docx(){
  const types='<?xml version="1.0"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="png" ContentType="image/png"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>';
  const document='<?xml version="1.0"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><w:body><w:p><w:pPr><w:pStyle w:val="Heading1"/></w:pPr><w:r><w:t>导入的小标题</w:t></w:r></w:p><w:p><w:r><w:rPr><w:b/></w:rPr><w:t>加粗文字</w:t></w:r></w:p><w:p><w:r><w:t>中文正文和图片。</w:t></w:r></w:p><w:p><w:r><w:drawing><wp:inline><a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic><pic:blipFill><a:blip r:embed="rIdImage1"/></pic:blipFill></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p></w:body></w:document>';
@@ -103,6 +109,7 @@ async function editor(mf,cookie,entry,beforeFetch){
  // JSDOM has no layout engine; provide the geometry methods used by CodeMirror.
  dom.window.Range.prototype.getClientRects=()=>[];
  dom.window.Range.prototype.getBoundingClientRect=()=>({left:0,right:0,top:0,bottom:0,width:0,height:0});
+ dom.window.Blob.prototype.arrayBuffer=function(){return new Promise((resolve,reject)=>{const reader=new dom.window.FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsArrayBuffer(this);});};
  const close=dom.window.close.bind(dom.window);
  dom.window.close=()=>{const root=dom.window.document.querySelector('.cm-editor');if(root&&dom.window.testEditorView)dom.window.testEditorView.findFromDOM(root)?.destroy();close();};
  const calls=[];
@@ -187,4 +194,33 @@ test('image upload, DOCX import and local recovery immediately update pictures i
   const stored=await db.prepare('SELECT * FROM journal_entries WHERE id=?').bind(entry.id).first();const savedBody=JSON.parse(stored.draft).content;assert.equal(document.querySelector('[name=content]').value,savedBody);
   recovered=await editor(mf,cookie,stored);recovered.dom.window.localStorage.setItem('mcxiaoshan-journal-draft:'+entry.id,JSON.stringify({value:{slug:entry.slug,draft:draft({content:savedBody+'\n\n恢复的文字'})}}));recovered.start();recovered.dom.window.document.querySelector('[data-restore-local]').click();assert.equal(recovered.dom.window.document.querySelectorAll('[data-image-editor] img').length,1);assert.match(recovered.dom.window.document.querySelector('[name=content]').value,/恢复的文字/);
  }finally{ui?.dom.window.close();recovered?.dom.window.close();await mf.dispose();}
+});
+
+test('GIF, animated WebP and APNG keep every original byte from editor upload to public media, even with an incorrect MIME type',async()=>{
+ const {mf,db,cookie}=await worker();let ui;try{
+  const entry=await save(mf,cookie,randomUUID());ui=await editor(mf,cookie,entry);ui.start();
+  const document=ui.dom.window.document,host=document.querySelector('[data-image-editor]'),input=document.querySelector('[data-image-file]');
+  ui.dom.window.createImageBitmap=()=>{throw new Error('Animation must never enter static Canvas compression');};
+  const uploaded=[];
+  for(const [index,animation] of animations.entries()){
+   const view=ui.dom.window.testEditorView.findFromDOM(host.querySelector('.cm-editor'));view.dispatch({selection:{anchor:view.state.doc.length}});
+   Object.defineProperty(input,'files',{configurable:true,value:[new ui.dom.window.File([animation.bytes],'动图.'+animation.extension,{type:index===0?'image/png':''})]});input.dispatchEvent(new ui.dom.window.Event('change'));
+   await until(ui.dom,()=>host.querySelectorAll('img').length===index+1&&!document.querySelector('fieldset').disabled);
+   const path=host.querySelectorAll('img')[index].getAttribute('src');const response=await mf.dispatchFetch(origin+path,{headers:{cookie}});
+   assert.equal(response.status,200);assert.equal(response.headers.get('content-type'),animation.mime);assert.deepEqual(Buffer.from(await response.arrayBuffer()),animation.bytes);uploaded.push({path,...animation});
+  }
+  const firstImage=host.querySelector('img'),view=ui.dom.window.testEditorView.findFromDOM(host.querySelector('.cm-editor'));
+  view.dispatch({changes:{from:view.state.doc.length,insert:'\n继续写作'}});assert.equal(host.querySelector('img'),firstImage,'typing must reuse the image DOM instead of restarting animation');
+  document.querySelector('[data-save]').click();await until(ui.dom,()=>!document.querySelector('fieldset').disabled);
+  const row=await db.prepare('SELECT * FROM journal_entries WHERE id=?').bind(entry.id).first();await action(mf,cookie,row,'publish');
+  for(const animation of uploaded){const response=await mf.dispatchFetch(origin+animation.path);assert.equal(response.status,200);assert.deepEqual(Buffer.from(await response.arrayBuffer()),animation.bytes);}
+  const count=await db.prepare('SELECT COUNT(*) AS count FROM journal_assets WHERE entry_id=?').bind(entry.id).first();
+  for(const animation of animations){
+   const oversized=Buffer.concat([animation.bytes,Buffer.alloc(750001-animation.bytes.length)]);
+   Object.defineProperty(input,'files',{configurable:true,value:[new ui.dom.window.File([oversized],'大动图.'+animation.extension,{type:'image/jpeg'})]});input.dispatchEvent(new ui.dom.window.Event('change'));
+   await until(ui.dom,()=>document.querySelector('[data-save-status]').textContent.includes('这张动图超过 750 KB')&&!document.querySelector('fieldset').disabled);
+   assert.equal(host.querySelectorAll('img').length,3);
+  }
+  const after=await db.prepare('SELECT COUNT(*) AS count FROM journal_assets WHERE entry_id=?').bind(entry.id).first();assert.equal(after.count,count.count);
+ }finally{ui?.dom.window.close();await mf.dispose();}
 });

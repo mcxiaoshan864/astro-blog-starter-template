@@ -33,6 +33,7 @@ const slug=entry?.slug || `note-${id.slice(0,8)}`;
       <textarea class="content-input" id="article-content" name="content" rows="20" maxlength="360000" placeholder="写下今天想记住的事……&#10;&#10;可使用 Markdown，也可以用上方按钮添加格式。">{draft.content}</textarea>
       <div class="image-editor" data-image-editor hidden></div>
       <div class="writing-foot"><span>图片直接显示 · 可切换 Markdown 编辑链接</span><span data-word-count>0 字</span></div>
+      <p class="hint">GIF、动态 WebP 和 APNG 保留动画原文件，单张限 750 KB；静态大图会尝试自动压缩。</p>
       <p class="hint">TXT 限 1 MB、DOC 限 2 MB、DOCX 限 8 MB。DOC 导入正文；DOCX 可保留常见格式和配图。</p>
       <p class="notice" data-import-result role="status" hidden></p>
       <div class="actions"><button class="button glass-control" type="button" data-save>保存草稿</button><button class="button glass-control" type="button" data-preview>预览 ↗</button><button class="button glass-control primary" type="button" data-publish>{entry?.status==='published'?'发布更新':'发布文章'}</button></div>
